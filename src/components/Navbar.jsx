@@ -1,10 +1,21 @@
-import React from 'react'
+import React, { useContext } from 'react'
+import { CartContext } from '../context/CartContext'
+import './navbar.css'
 import logo from '../assets/images/logo.jpg'
 
 export default function Navbar() {
+  const { totalItems } = useContext(CartContext)
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+
+  const isActive = (p) => {
+    if (!p) return false
+    if (p === '/') return path === '/' || path === ''
+    return path === p || path.startsWith(p + '/')
+  }
+
   return (
     <header>
-      <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm" role="navigation" aria-label="Navegación principal">
+  <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm navbar-custom" role="navigation" aria-label="Navegación principal">
         <div className="container-fluid">
           <a className="navbar-brand d-flex flex-column align-items-center justify-content-center me-4" href="#" aria-label="VentasBronca - Inicio" style={{ minWidth: 90 }}>
             <img src={logo} alt="Logo VentasBronca" className="logo-img mb-1" style={{ height: 48, width: 'auto' }} />
@@ -18,10 +29,10 @@ export default function Navbar() {
           <div className="collapse navbar-collapse" id="navbarMain">
             <ul className="navbar-nav mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" href="/">Inicio</a>
+                <a className={`nav-link ${isActive('/') ? 'active' : ''}`} href="/">Inicio</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/productos">Productos</a>
+                <a className={`nav-link ${isActive('/productos') ? 'active' : ''}`} href="/productos">Productos</a>
               </li>
               <li className="nav-item dropdown">
                 <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categorías</a>
@@ -40,13 +51,13 @@ export default function Navbar() {
                 </ul>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/nosotros">Nosotros</a>
+                <a className={`nav-link ${isActive('/nosotros') ? 'active' : ''}`} href="/nosotros">Nosotros</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/blogs">Blogs</a>
+                <a className={`nav-link ${isActive('/blogs') ? 'active' : ''}`} href="/blogs">Blogs</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/contacto">Contacto</a>
+                <a className={`nav-link ${isActive('/contacto') ? 'active' : ''}`} href="/contacto">Contacto</a>
               </li>
               <li className="nav-item d-lg-none">
                 <a className="nav-link" href="/registro">Registrarse</a>
@@ -60,8 +71,8 @@ export default function Navbar() {
               </div>
             </form>
 
-            <button className="btn btn-outline-primary d-none d-lg-flex align-items-center me-2" data-bs-toggle="modal" data-bs-target="#cartModal" aria-label="Ver carrito de compras">
-              Carrito <span id="cart-count-nav" className="badge bg-danger ms-1">0</span>
+            <button className="btn btn-outline-primary d-none d-lg-flex align-items-center me-2 nav-cart-btn" data-bs-toggle="modal" data-bs-target="#cartModal" aria-label="Ver carrito de compras">
+              Carrito <span id="cart-count-nav" className="badge bg-danger ms-1">{totalItems}</span>
             </button>
 
             <div className="d-flex align-items-center ms-auto">
