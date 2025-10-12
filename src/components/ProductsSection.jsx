@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react'
 import ProductCard from './ProductCard'
 import Lightbox from './Lightbox'
 import { CartContext } from '../context/CartContext'
+import './products-section.css'
 
 import imgA from '../assets/images/productos/tactico/MultiusoGerber.jpg'
 import imgB from '../assets/images/productos/tactico/MultiusoGerber2.jpg'
@@ -35,8 +36,8 @@ export default function ProductsSection() {
       <div className="container">
         <div className="row mb-4">
           <div className="col-12 text-center">
-            <h1 className="display-6 fw-bold mb-2">Catálogo de Productos</h1>
-            <p className="text-muted">Explora nuestra selección de productos tácticos, militares, camping y más</p>
+            <h1 className="display-6 fw-bold mb-2 products-section-title">Catálogo de Productos</h1>
+            <p className="text-muted products-section-desc">Explora nuestra selección de productos tácticos, militares, camping y más</p>
             <hr className="mx-auto" style={{ width: 100, height: 3 }} />
           </div>
         </div>

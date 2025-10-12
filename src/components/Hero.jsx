@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 import slideImg from '../assets/images/5803438.jpg'
+import './hero.css'
 
 export default function Hero() {
   const { addItem } = useContext(CartContext)
