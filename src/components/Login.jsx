@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import logo from '../assets/images/logo.jpg'
+import { useNavigate } from 'react-router-dom'
 
 function mockAuthenticate(email, password) {
   return new Promise((resolve) => {
@@ -36,6 +37,7 @@ export default function Login() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     try {
@@ -44,12 +46,12 @@ export default function Login() {
       if (token && expires && Date.now() < expires) {
         const params = new URLSearchParams(window.location.search)
         const next = params.get('next') || '/'
-        window.location.href = next
+        navigate(next, { replace: true })
       }
     } catch (err) {
       // ignore
     }
-  }, [])
+  }, [navigate])
 
   function validate() {
     const err = {}
@@ -66,19 +68,19 @@ export default function Login() {
     setMessage(null)
     if (!validate()) return
     setLoading(true)
-    mockAuthenticate(email.trim(), password)
-      .then((res) => {
+    mockAuthenticate(email, password)
+      .then((result) => {
         setLoading(false)
-        if (res.ok) {
-          saveSession(res)
-          setMessage({ type: 'success', text: 'Inicio de sesión exitoso. Redirigiendo...' })
+        if (result.ok) {
+          saveSession(result)
+          setMessage({ type: 'success', text: '¡Bienvenido! Redirigiendo...' })
           setTimeout(() => {
             const params = new URLSearchParams(window.location.search)
             const next = params.get('next') || '/'
-            window.location.href = next
-          }, 800)
+            navigate(next, { replace: true })
+          }, 700)
         } else {
-          setMessage({ type: 'danger', text: res.error || 'Error al iniciar sesión.' })
+          setMessage({ type: 'danger', text: result.error })
         }
       })
       .catch(() => {

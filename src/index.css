@@ -85,3 +85,9 @@ button:focus-visible {
   }
 }
 
+/* Mejora de contraste para la sección Sobre VentasBronca y equipo */
+.about-section, .about-section *, .about-team, .about-team * {
+  color: #fff !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.45);
+}
+

@@ -2,9 +2,11 @@ import React, { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 import './navbar.css'
 import logo from '../assets/images/logo.jpg'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Navbar() {
   const { totalItems } = useContext(CartContext)
+  const navigate = useNavigate()
   const path = typeof window !== 'undefined' ? window.location.pathname : '/'
 
   const isActive = (p) => {
@@ -17,10 +19,10 @@ export default function Navbar() {
     <header>
   <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm navbar-custom" role="navigation" aria-label="Navegación principal">
         <div className="container-fluid">
-          <a className="navbar-brand d-flex flex-column align-items-center justify-content-center me-4" href="#" aria-label="VentasBronca - Inicio" style={{ minWidth: 90 }}>
+          <Link className="navbar-brand d-flex flex-column align-items-center justify-content-center me-4" to="/" aria-label="VentasBronca - Inicio" style={{ minWidth: 90 }}>
             <img src={logo} alt="Logo VentasBronca" className="logo-img mb-1" style={{ height: 48, width: 'auto' }} />
             <span className="brand-text fw-bold" style={{ fontSize: '1.1rem' }}>VentasBronca</span>
-          </a>
+          </Link>
 
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Abrir menú de navegación">
             <span className="navbar-toggler-icon"></span>
@@ -29,10 +31,10 @@ export default function Navbar() {
           <div className="collapse navbar-collapse" id="navbarMain">
             <ul className="navbar-nav mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className={`nav-link ${isActive('/') ? 'active' : ''}`} href="/">Inicio</a>
+                <Link className={`nav-link ${isActive('/') ? 'active' : ''}`} to="/">Inicio</Link>
               </li>
               <li className="nav-item">
-                <a className={`nav-link ${isActive('/productos') ? 'active' : ''}`} href="/productos">Productos</a>
+                <Link className={`nav-link ${isActive('/productos') ? 'active' : ''}`} to="/productos">Productos</Link>
               </li>
               <li className="nav-item dropdown">
                 <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categorías</a>
@@ -51,16 +53,16 @@ export default function Navbar() {
                 </ul>
               </li>
               <li className="nav-item">
-                <a className={`nav-link ${isActive('/nosotros') ? 'active' : ''}`} href="/nosotros">Nosotros</a>
+                <Link className={`nav-link ${isActive('/nosotros') ? 'active' : ''}`} to="/nosotros">Nosotros</Link>
               </li>
               <li className="nav-item">
-                <a className={`nav-link ${isActive('/blogs') ? 'active' : ''}`} href="/blogs">Blogs</a>
+                <Link className={`nav-link ${isActive('/blogs') ? 'active' : ''}`} to="/blogs">Blogs</Link>
               </li>
               <li className="nav-item">
-                <a className={`nav-link ${isActive('/contacto') ? 'active' : ''}`} href="/contacto">Contacto</a>
+                <Link className={`nav-link ${isActive('/contacto') ? 'active' : ''}`} to="/contacto">Contacto</Link>
               </li>
               <li className="nav-item d-lg-none">
-                <a className="nav-link" href="/registro">Registrarse</a>
+                <Link className="nav-link" to="/registro">Registrarse</Link>
               </li>
             </ul>
 
@@ -80,12 +82,7 @@ export default function Navbar() {
                 type="button"
                 className="btn btn-outline-secondary btn-sm px-3 py-1 me-2"
                 style={{ fontSize: '0.95rem' }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  // Navegación SPA simple sin React Router
-                  window.history.pushState({}, '', '/login')
-                  window.dispatchEvent(new PopStateEvent('popstate'))
-                }}
+                onClick={() => navigate('/login')}
               >
                 Login
               </button>
@@ -93,11 +90,7 @@ export default function Navbar() {
                 type="button"
                 className="btn btn-outline-success btn-sm px-3 py-1 d-none d-lg-inline"
                 style={{ fontSize: '0.95rem' }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  window.history.pushState({}, '', '/registro')
-                  window.dispatchEvent(new PopStateEvent('popstate'))
-                }}
+                onClick={() => navigate('/registro')}
               >
                 Registrarse
               </button>

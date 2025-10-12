@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const POSTS = [
   {
@@ -23,7 +24,7 @@ export default function BlogList() {
             <div className="card p-3 h-100">
               <h3 className="h5">{p.title}</h3>
               <p className="text-muted">{p.excerpt}</p>
-              <a className="btn btn-outline-primary" href={`/blogs/${p.slug}`}>Leer</a>
+              <Link className="btn btn-outline-primary" to={`/blogs/${p.slug}`}>Leer</Link>
             </div>
           </div>
         ))}

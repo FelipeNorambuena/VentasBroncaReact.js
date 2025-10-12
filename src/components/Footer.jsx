@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import logo from '../assets/images/logo.jpg'
 import instagramIcon from '../assets/icons/instagram.svg'
 import whatsappIcon from '../assets/icons/whatsapp.svg'
@@ -19,20 +20,20 @@ export default function Footer() {
           <div className="col-lg-2 col-md-6 mb-4">
             <h6 className="fw-bold mb-3">Enlaces</h6>
             <ul className="list-unstyled">
-              <li><a href="/" className="text-light text-decoration-none">Inicio</a></li>
-              <li><a href="/productos" className="text-light text-decoration-none">Productos</a></li>
-              <li><a href="/categorias" className="text-light text-decoration-none">Categorías</a></li>
-              <li><a href="/contacto" className="text-light text-decoration-none">Contacto</a></li>
+              <li><Link to="/" className="text-light text-decoration-none">Inicio</Link></li>
+              <li><Link to="/productos" className="text-light text-decoration-none">Productos</Link></li>
+              <li><Link to="/categorias" className="text-light text-decoration-none">Categorías</Link></li>
+              <li><Link to="/contacto" className="text-light text-decoration-none">Contacto</Link></li>
             </ul>
           </div>
 
           <div className="col-lg-3 col-md-6 mb-4">
             <h6 className="fw-bold mb-3">Categorías</h6>
             <ul className="list-unstyled">
-              <li><a href="#" className="text-light text-decoration-none">Militares</a></li>
-              <li><a href="#" className="text-light text-decoration-none">Camping</a></li>
-              <li><a href="#" className="text-light text-decoration-none">Tácticos</a></li>
-              <li><a href="#" className="text-light text-decoration-none">Accesorios</a></li>
+              <li><Link to="/categorias/militares" className="text-light text-decoration-none">Militares</Link></li>
+              <li><Link to="/categorias/camping" className="text-light text-decoration-none">Camping</Link></li>
+              <li><Link to="/categorias/tacticos" className="text-light text-decoration-none">Tácticos</Link></li>
+              <li><Link to="/categorias/accesorios" className="text-light text-decoration-none">Accesorios</Link></li>
             </ul>
           </div>
 

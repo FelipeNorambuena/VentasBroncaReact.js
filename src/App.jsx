@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import './App.css'
 import { CartProvider, CartContext } from './context/CartContext'
 import Navbar from './components/Navbar'
@@ -15,17 +15,11 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Notification from './components/Notification'
 import ConfirmModal from './components/ConfirmModal'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Productos from './pages/Productos'
 
 function AppContent() {
-  const [path, setPath] = React.useState(typeof window !== 'undefined' ? window.location.pathname : '/')
-  const { confirm } = useContext(CartContext)
-
-  React.useEffect(() => {
-    const onPop = () => setPath(window.location.pathname)
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
-
+  const { confirm } = React.useContext(CartContext)
   return (
     <>
       <Navbar />
@@ -39,28 +33,36 @@ function AppContent() {
           onCancel={confirm.onCancel}
         />
       )}
-      {path === '/login' ? (
-        <Login />
-      ) : path === '/registro' ? (
-        <Register />
-      ) : path.includes('/nosotros') ? (
-        <About />
-      ) : path === '/blogs' || path.startsWith('/blogs/') ? (
-        path === '/blogs' ? <BlogList /> : <BlogPost />
-      ) : path.includes('/contacto') ? (
-        <Contact />
-      ) : (
-        <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Register />} />
+        <Route path="/nosotros" element={<About />} />
+        <Route path="/blogs" element={<BlogList />} />
+        <Route path="/blogs/:id" element={<BlogPost />} />
+        <Route path="/contacto" element={<Contact />} />
+        <Route path="/productos" element={<Productos />} />
+        <Route path="/" element={
+          <>
+            <main style={{ paddingTop: '80px' }}>
+              <Hero />
+              <ProductsSection />
+            </main>
+            <Footer />
+            <FloatingCart />
+            <CartModal />
+          </>
+        } />
+        {/* Fallback: redirigir a home si no existe la ruta */}
+        <Route path="*" element={<>
           <main style={{ paddingTop: '80px' }}>
             <Hero />
             <ProductsSection />
           </main>
           <Footer />
-
           <FloatingCart />
           <CartModal />
-        </>
-      )}
+        </>} />
+      </Routes>
     </>
   )
 }
@@ -68,7 +70,9 @@ function AppContent() {
 function App() {
   return (
     <CartProvider>
-      <AppContent />
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </CartProvider>
   )
 }

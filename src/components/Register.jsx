@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import logo from '../assets/images/logo.jpg'
+import { useNavigate } from 'react-router-dom'
 
 // Lista de ejemplo de regiones y comunas (puedes reemplazar por API real)
 const REGIONES = [
@@ -21,6 +22,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const [comunas, setComunas] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     // inicializamos regiones; como ejemplo no hacemos fetch
@@ -67,8 +69,7 @@ export default function Register() {
           } catch (err) {}
           setMessage({ type: 'success', text: 'Registro exitoso. Redirigiendo al login...' })
           setTimeout(() => {
-            window.history.pushState({}, '', '/login')
-            window.dispatchEvent(new PopStateEvent('popstate'))
+            navigate('/login', { replace: true })
           }, 700)
         } else {
           setMessage({ type: 'danger', text: res.error || 'Error al registrar.' })

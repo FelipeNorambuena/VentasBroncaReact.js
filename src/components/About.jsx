@@ -9,7 +9,7 @@ export default function About() {
   return (
     <>
     <main className="container py-5 mt-5">
-      <section className="mb-5">
+      <section className="mb-5 about-section">
         <h1 className="display-5 fw-bold text-center mb-4">Sobre VentasBronca</h1>
         <div className="row align-items-center">
           <div className="col-md-6 mb-4 mb-md-0">
@@ -26,7 +26,7 @@ export default function About() {
         </div>
       </section>
 
-      <section>
+      <section className="about-team">
         <h2 className="h4 fw-bold text-center mb-4">Nuestro equipo</h2>
         <div className="row justify-content-center">
           <div className="col-md-4 text-center mb-4">
