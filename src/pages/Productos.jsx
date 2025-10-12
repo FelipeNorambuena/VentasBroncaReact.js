@@ -9,7 +9,7 @@ export default function Productos() {
   return (
     <>
       <Navbar />
-      <main className="main-content" tabIndex={-1}>
+      <main className="main-content" tabIndex={-1} style={{ paddingTop: '80px' }}>
         <ProductsSection />
       </main>
       <Footer />

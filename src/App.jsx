@@ -15,14 +15,23 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Notification from './components/Notification'
 import ConfirmModal from './components/ConfirmModal'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Productos from './pages/Productos'
+import AdminLayout from './admin/AdminLayout'
+import AdminDashboard from './admin/AdminDashboard'
+import AdminUsuarios from './admin/AdminUsuarios'
+import AdminProductos from './admin/AdminProductos'
+import AdminCrearUsuario from './admin/AdminCrearUsuario'
+import AdminConfiguracion from './admin/AdminConfiguracion'
+import AdminPerfil from './admin/AdminPerfil'
 
 function AppContent() {
   const { confirm } = React.useContext(CartContext)
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
   return (
     <>
-      <Navbar />
+      {!isAdminRoute && <Navbar />}
       <Notification />
       {confirm && (
         <ConfirmModal
@@ -41,6 +50,14 @@ function AppContent() {
         <Route path="/blogs/:id" element={<BlogPost />} />
         <Route path="/contacto" element={<Contact />} />
         <Route path="/productos" element={<Productos />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="usuarios" element={<AdminUsuarios />} />
+          <Route path="productos" element={<AdminProductos />} />
+          <Route path="crear-usuario" element={<AdminCrearUsuario />} />
+          <Route path="configuracion" element={<AdminConfiguracion />} />
+          <Route path="perfil" element={<AdminPerfil />} />
+        </Route>
         <Route path="/" element={
           <>
             <main style={{ paddingTop: '80px' }}>
