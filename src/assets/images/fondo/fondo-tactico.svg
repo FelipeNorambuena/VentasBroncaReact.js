@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <!-- Fondo oscuro con degradado patrio-táctico -->
+  <defs>
+    <linearGradient id="gradienteChile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="60%" stop-color="#1b263b"/>
+      <stop offset="100%" stop-color="#0d1b2a"/>
+    </linearGradient>
+
+    <!-- Textura sutil de terreno (estilo táctico) -->
+    <pattern id="texturaTierra" patternUnits="userSpaceOnUse" width="100" height="100" opacity="0.05">
+      <path d="M-20,20 l40,-40 M0,0 l40,40 M20,-20 l40,40" stroke="#3a5a40" stroke-width="2" fill="none"/>
+    </pattern>
+
+    <!-- Animación sutil del cóndor -->
+    <style>
+      @keyframes volar {
+        0% { transform: translateX(-10px) rotate(-5deg); }
+        50% { transform: translateY(-5px) rotate(5deg); }
+        100% { transform: translateX(10px) rotate(-5deg); }
+      }
+      #condor { 
+        animation: volar 8s ease-in-out infinite; 
+      }
+    </style>
+  </defs>
+
+  <!-- Fondo principal -->
+  <rect width="1920" height="1080" fill="url(#gradienteChile)" />
+
+  <!-- Textura táctica de fondo -->
+  <rect width="1920" height="1080" fill="url(#texturaTierra)" />
+
+  <!-- Cordillera de los Andes (silueta estilizada) -->
+  <path d="M0,800 L200,650 L400,700 L600,580 L800,620 L1000,550 L1200,600 L1400,520 L1600,590 L1800,500 L1920,530 L1920,1080 L0,1080 Z"
+        fill="#143242" opacity="0.7"/>
+
+  <!-- Volcán Villarrica (con resplandor) -->
+  <path d="M1500,520 L1600,400 L1700,520 Z" fill="#3a5a40"/>
+  <circle cx="1600" cy="390" r="15" fill="#e67e22" opacity="0.8"/>
+  <circle cx="1600" cy="390" r="30" fill="#e67e22" opacity="0.3" filter="blur(10px)"/>
+
+  <!-- Lago y reflejo (sur de Chile) -->
+  <path d="M0,900 Q600,880 1200,920 T1920,900 L1920,1080 L0,1080 Z" fill="#0b3d66" opacity="0.4"/>
+
+  <!-- Cóndor andino (símbolo táctico y nacional) -->
+  <g id="condor" transform="translate(1700, 200)">
+    <path d="M0,0 L-40,-30 L-30,-10 L-60,10 L-40,5 L-70,25 L-50,20 L-80,40 L-60,35 L-40,55 L-20,40 L0,50 L20,40 L40,55 L60,35 L80,40 L50,20 L70,25 L40,5 L60,10 L30,-10 L40,-30 Z"
+          fill="#e0e1dd" opacity="0.9" stroke="#000" stroke-width="1"/>
+  </g>
+
+  <!-- Huemul (silueta en primer plano, lado izquierdo) -->
+  <g transform="translate(300, 850) scale(1.2)">
+    <circle cx="0" cy="-20" r="12" fill="#d4a76a"/> <!-- cabeza -->
+    <rect x="-8" y="0" width="16" height="30" fill="#8b5e3c"/> <!-- cuerpo -->
+    <rect x="-6" y="30" width="6" height="20" fill="#5d4037"/> <!-- pata izq -->
+    <rect x="0" y="30" width="6" height="20" fill="#5d4037"/> <!-- pata der -->
+    <path d="M-10,-15 L-20,-35 M10,-15 L20,-35" stroke="#8b5e3c" stroke-width="3"/> <!-- cuernos cortos -->
+  </g>
+
+  <!-- Brillo sutil de estrellas (noche táctica) -->
+  <g fill="#fff" opacity="0.3">
+    <circle cx="200" cy="100" r="1"/>
+    <circle cx="500" cy="80" r="1.5"/>
+    <circle cx="900" cy="120" r="1"/>
+    <circle cx="1300" cy="90" r="2"/>
+    <circle cx="1700" cy="150" r="1"/>
+  </g>
+</svg>
