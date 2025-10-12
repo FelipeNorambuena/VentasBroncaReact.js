@@ -11,13 +11,25 @@ import About from './components/About'
 import Contact from './components/Contact'
 import BlogList from './components/BlogList'
 import BlogPost from './components/BlogPost'
+import Login from './components/Login'
+import Register from './components/Register'
 function App() {
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const [path, setPath] = React.useState(typeof window !== 'undefined' ? window.location.pathname : '/')
+
+  React.useEffect(() => {
+    const onPop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   return (
     <CartProvider>
       <Navbar />
-      {path.includes('/nosotros') ? (
+      {path === '/login' ? (
+        <Login />
+      ) : path === '/registro' ? (
+        <Register />
+      ) : path.includes('/nosotros') ? (
         <About />
       ) : path === '/blogs' || path.startsWith('/blogs/') ? (
         path === '/blogs' ? <BlogList /> : <BlogPost />

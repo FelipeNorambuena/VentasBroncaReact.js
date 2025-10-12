@@ -65,8 +65,31 @@ export default function Navbar() {
             </button>
 
             <div className="d-flex align-items-center ms-auto">
-              <a href="/login" className="btn btn-outline-secondary btn-sm px-3 py-1 me-2" style={{ fontSize: '0.95rem' }}>Login</a>
-              <a href="/registro" className="btn btn-outline-success btn-sm px-3 py-1 d-none d-lg-inline" style={{ fontSize: '0.95rem' }}>Registrarse</a>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm px-3 py-1 me-2"
+                style={{ fontSize: '0.95rem' }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  // Navegación SPA simple sin React Router
+                  window.history.pushState({}, '', '/login')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-success btn-sm px-3 py-1 d-none d-lg-inline"
+                style={{ fontSize: '0.95rem' }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  window.history.pushState({}, '', '/registro')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+              >
+                Registrarse
+              </button>
             </div>
           </div>
         </div>
