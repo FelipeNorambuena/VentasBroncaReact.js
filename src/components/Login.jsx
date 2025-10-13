@@ -1,35 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import logo from '../assets/images/logo.jpg'
 import { useNavigate } from 'react-router-dom'
+import { authService } from '../services/auth'
+import { setAuthToken } from '../utils/authToken'
+import { useAuth } from '../context/AuthContext'
 
-function mockAuthenticate(email, password) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const validEmail = 'demo@ventasbronca.local'
-      const validPassword = 'ventas123'
-      if (email === validEmail && password === validPassword) {
-        resolve({ ok: true, token: 'demo-token-ventasbronca-2025', user: { name: 'Demo Usuario', email } })
-        return
-      }
-      if (email && password && password.length >= 6) {
-        resolve({ ok: true, token: 'dev-token-' + btoa(email + ':' + password).slice(0, 24), user: { name: email.split('@')[0], email } })
-        return
-      }
-      resolve({ ok: false, error: 'Credenciales incorrectas' })
-    }, 600)
-  })
-}
 
-function saveSession(result) {
-  try {
-    localStorage.setItem('ventasbronca_token', result.token)
-    localStorage.setItem('ventasbronca_user', JSON.stringify(result.user))
-    const expires = Date.now() + 24 * 60 * 60 * 1000
-    localStorage.setItem('ventasbronca_token_expires', String(expires))
-  } catch (err) {
-    console.warn('No se pudo guardar la sesión', err)
-  }
-}
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -38,23 +14,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const navigate = useNavigate()
+  const { login, isAuthenticated } = useAuth()
 
   useEffect(() => {
-    // Solo redirigir si viene con parámetro ?redirect=true
-    try {
-      const token = localStorage.getItem('ventasbronca_token')
-      const expires = Number(localStorage.getItem('ventasbronca_token_expires') || 0)
+    // Redirigir si ya está autenticado
+    if (isAuthenticated) {
       const params = new URLSearchParams(window.location.search)
-      const shouldRedirect = params.get('redirect') === 'true'
-      
-      if (token && expires && Date.now() < expires && shouldRedirect) {
-        const next = params.get('next') || '/'
-        navigate(next, { replace: true })
-      }
-    } catch (err) {
-      // ignore
+      const next = params.get('next') || '/'
+      navigate(next, { replace: true })
     }
-  }, [navigate])
+  }, [navigate, isAuthenticated])
 
   function validate() {
     const err = {}
@@ -71,11 +40,16 @@ export default function Login() {
     setMessage(null)
     if (!validate()) return
     setLoading(true)
-    mockAuthenticate(email, password)
+    authService.login({ email, password })
       .then((result) => {
         setLoading(false)
-        if (result.ok) {
-          saveSession(result)
+        if (result) {
+          const token = result?.token || result?.authToken || result?.data?.token || ''
+          const user = result?.user || result?.data?.user || result
+          
+          if (token) setAuthToken(token)
+          login(user, token)
+          
           setMessage({ type: 'success', text: '¡Bienvenido! Redirigiendo...' })
           setTimeout(() => {
             const params = new URLSearchParams(window.location.search)
@@ -83,12 +57,13 @@ export default function Login() {
             navigate(next, { replace: true })
           }, 700)
         } else {
-          setMessage({ type: 'danger', text: result.error })
+          setMessage({ type: 'danger', text: 'Credenciales incorrectas' })
         }
       })
-      .catch(() => {
+      .catch((err) => {
         setLoading(false)
-        setMessage({ type: 'danger', text: 'Error de red. Intente nuevamente.' })
+        const msg = err?.message || 'Error de red. Intente nuevamente.'
+        setMessage({ type: 'danger', text: msg })
       })
   }
 

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react'
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react'
 
 export const CartContext = createContext(null)
 
@@ -37,13 +37,13 @@ export function CartProvider({ children }) {
   // Estado para el modal de confirmación
   const [confirm, setConfirm] = useState(null)
 
-  // Función para mostrar notificaciones
-  const showNotification = (message, type = 'success') => {
+  // Función para mostrar notificaciones (memoizada)
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
-  }
+  }, [])
 
-  const addItem = (product) => {
+  const addItem = useCallback((product) => {
     if (!product.id || !product.name || !product.price) {
         showNotification('Error: Datos del producto incompletos', 'error');
         return;
@@ -59,9 +59,9 @@ export function CartProvider({ children }) {
       showNotification(`${product.name} agregado al carrito`, 'success')
       return [...prev, { ...product, quantity: product.quantity || 1 }]
     })
-  }
+  }, [showNotification])
 
-  const modifyQuantity = (productId, change) => {
+  const modifyQuantity = useCallback((productId, change) => {
     setItems(prev => {
         const itemIndex = prev.findIndex(i => i.id === productId);
         if (itemIndex === -1) return prev;
@@ -81,9 +81,9 @@ export function CartProvider({ children }) {
         
         return updatedItems;
     });
-  }
+  }, [showNotification])
 
-  const removeItem = (id) => {
+  const removeItem = useCallback((id) => {
     const item = items.find(i => i.id === id)
     if (!item) return
 
@@ -98,9 +98,9 @@ export function CartProvider({ children }) {
         },
         onCancel: () => setConfirm(null) // Ocultar modal
     })
-  }
+  }, [items, showNotification])
   
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     if (items.length === 0) return
     // Mostrar el modal de confirmación
     setConfirm({
@@ -113,9 +113,9 @@ export function CartProvider({ children }) {
         },
         onCancel: () => setConfirm(null)
     })
-  }
+  }, [items.length, showNotification])
 
-  const checkout = () => {
+  const checkout = useCallback(() => {
     if (items.length === 0) {
         showNotification('El carrito está vacío', 'error');
         return;
@@ -136,10 +136,10 @@ export function CartProvider({ children }) {
     const whatsappURL = `https://api.whatsapp.com/send/?phone=${phoneNumber}&text=${message}&type=phone_number&app_absent=0`;
     window.open(whatsappURL, '_blank');
     showNotification('Redirigiendo a WhatsApp...', 'success');
-  }
+  }, [items, showNotification])
 
-  const totalItems = items.reduce((s, p) => s + (p.quantity || 0), 0)
-  const totalPrice = items.reduce((s, p) => s + ((p.price || 0) * (p.quantity || 0)), 0)
+  const totalItems = useMemo(() => items.reduce((s, p) => s + (p.quantity || 0), 0), [items])
+  const totalPrice = useMemo(() => items.reduce((s, p) => s + ((p.price || 0) * (p.quantity || 0)), 0), [items])
 
   return (
     <CartContext.Provider value={{ 

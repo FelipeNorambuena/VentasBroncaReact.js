@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import logo from '../assets/images/logo.jpg'
 import { useNavigate } from 'react-router-dom'
+import { authService } from '../services/auth'
+import { setAuthToken } from '../utils/authToken'
 
 // Lista de ejemplo de regiones y comunas (puedes reemplazar por API real)
 const REGIONES = [
@@ -8,13 +10,7 @@ const REGIONES = [
   { id: 'biobio', name: 'Biobío', comunas: ['Concepción', 'Talcahuano', 'Chiguayante'] },
 ]
 
-function mockRegister(payload) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ ok: true, user: { id: Date.now(), ...payload } })
-    }, 700)
-  })
-}
+// Se reemplaza mockRegister por petición real a Xano en handleSubmit
 
 export default function Register() {
   const [form, setForm] = useState({ nombre: '', correo: '', confirmarCorreo: '', password: '', confirmarPassword: '', telefono: '', region: '', comuna: '' })
@@ -59,25 +55,27 @@ export default function Register() {
     setMessage(null)
     if (!validate()) return
     setLoading(true)
-    mockRegister(form)
+    const payload = { email: form.correo, password: form.password, name: form.nombre, phone: form.telefono }
+    authService.register(payload)
       .then((res) => {
         setLoading(false)
-        if (res.ok) {
-          // guardamos usuario demo y redirigimos a login
-          try {
-            localStorage.setItem('ventasbronca_registered_user', JSON.stringify(res.user))
-          } catch (err) {}
+        if (res?.token || res?.authToken || res?.data?.token) {
+          setAuthToken(res.token || res.authToken || res.data.token)
+        }
+        if (res) {
           setMessage({ type: 'success', text: 'Registro exitoso. Redirigiendo al login...' })
           setTimeout(() => {
             navigate('/login', { replace: true })
           }, 700)
         } else {
-          setMessage({ type: 'danger', text: res.error || 'Error al registrar.' })
+          setMessage({ type: 'danger', text: 'Error al registrar.' })
         }
       })
-      .catch(() => {
+      .catch((err) => {
         setLoading(false)
-        setMessage({ type: 'danger', text: 'Error de red. Intente nuevamente.' })
+        console.error('Error en registro:', err)
+        const msg = err?.message || 'Error de red. Intente nuevamente.'
+        setMessage({ type: 'danger', text: msg })
       })
   }
 

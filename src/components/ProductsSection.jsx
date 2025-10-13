@@ -1,8 +1,9 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import ProductCard from './ProductCard'
 import Lightbox from './Lightbox'
 import { CartContext } from '../context/CartContext'
 import './products-section.css'
+import { productsService } from '../services/products'
 
 import imgA from '../assets/images/productos/tactico/MultiusoGerber.jpg'
 import imgB from '../assets/images/productos/tactico/MultiusoGerber2.jpg'
@@ -25,8 +26,36 @@ const SAMPLE_PRODUCTS = [
 ]
 
 export default function ProductsSection() {
-  const { addItem } = useContext(CartContext)
+  const { addItem, showNotification } = useContext(CartContext)
   const [lightboxImage, setLightboxImage] = useState(null)
+  const [products, setProducts] = useState(SAMPLE_PRODUCTS)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    async function load() {
+      try {
+        const res = await productsService.list({ page: 1, limit: 12 })
+        const list = Array.isArray(res) ? res : (res?.data || [])
+        const mapped = list.map((it) => ({
+          id: it.id ?? it.slug ?? crypto.randomUUID?.() ?? String(Math.random()),
+          name: it.name || it.title || 'Producto',
+          price: Number(it.effective_price ?? it.price ?? 0),
+          category: it.category?.name || it.category || 'General',
+          image: it.primary_image_url || it.image || imgA,
+        }))
+        if (mounted && mapped.length) setProducts(mapped)
+      } catch (err) {
+        console.warn('No se pudieron cargar productos desde API, usando mock.', err)
+        // Removido showNotification para evitar bucle infinito
+        // if (showNotification) showNotification('Mostrando productos de ejemplo', 'info')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   const handleAdd = (product) => addItem(product)
   const handleOpen = (product) => setLightboxImage(product.image)
@@ -42,11 +71,17 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" id="catalog-grid" aria-live="polite">
-          {SAMPLE_PRODUCTS.map((p) => (
-            <ProductCard key={p.id} product={p} onAdd={handleAdd} onOpen={handleOpen} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-success" role="status" aria-live="polite" aria-label="Cargando productos" />
+          </div>
+        ) : (
+          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" id="catalog-grid" aria-live="polite">
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p} onAdd={handleAdd} onOpen={handleOpen} />
+            ))}
+          </div>
+        )}
       </div>
       <Lightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
     </section>

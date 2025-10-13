@@ -1,6 +1,7 @@
 import React from 'react'
 import './App.css'
 import { CartProvider, CartContext } from './context/CartContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Footer from './components/Footer'
@@ -27,8 +28,24 @@ import AdminPerfil from './admin/AdminPerfil'
 
 function AppContent() {
   const { confirm } = React.useContext(CartContext)
+  const { loading } = useAuth()
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  
+  // Mostrar pantalla de carga mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
+        <div className="text-center">
+          <div className="spinner-border text-success" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3 text-muted">Verificando sesión...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       {!isAdminRoute && <Navbar />}
@@ -86,11 +103,13 @@ function AppContent() {
 
 function App() {
   return (
-    <CartProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 

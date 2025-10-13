@@ -55,6 +55,25 @@ Próximos pasos sugeridos
 - Conectar el formulario de contacto a un backend o servicio de correo.
 - Habilitar persistencia del carrito y mejorar la UX del modal.
 
+## Configurar API (Xano)
+
+1) Crea un archivo `.env.local` (o copia `.env.example`) en la raíz del proyecto y define tu endpoint base de Xano:
+
+```
+VITE_API_BASE_URL=https://<tu-subdominio>.xano.io/api
+```
+
+2) Reinicia el servidor de desarrollo si ya está corriendo.
+
+3) Endpoints usados actualmente:
+- `GET /products` para listar productos (con `?page=&limit=` opcionales).
+- `POST /auth/register` y `POST /auth/login` para registro e inicio de sesión.
+- `GET /auth/me` para obtener el perfil (si dispones del endpoint con JWT).
+
+4) Al iniciar sesión, el token se guarda en `localStorage` (`ventasbronca_token`).
+
+Si tus rutas en Xano son diferentes, actualiza `src/services/auth.js` y `src/services/products.js`.
+
 
 
 ---
