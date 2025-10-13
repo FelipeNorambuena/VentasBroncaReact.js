@@ -4,6 +4,7 @@ import Lightbox from './Lightbox'
 import { CartContext } from '../context/CartContext'
 import './products-section.css'
 import { productsService } from '../services/products'
+import { productImageService } from '../services/productImage'
 
 import imgA from '../assets/images/productos/tactico/MultiusoGerber.jpg'
 import imgB from '../assets/images/productos/tactico/MultiusoGerber2.jpg'
@@ -27,28 +28,58 @@ const SAMPLE_PRODUCTS = [
 
 export default function ProductsSection() {
   const { addItem, showNotification } = useContext(CartContext)
-  const [lightboxImage, setLightboxImage] = useState(null)
-  const [products, setProducts] = useState(SAMPLE_PRODUCTS)
+  const [lightboxProduct, setLightboxProduct] = useState(null)
+  const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let mounted = true
     async function load() {
       try {
-        const res = await productsService.list({ page: 1, limit: 12 })
+        // Cargar productos activos desde la API
+        const res = await productsService.list({ page: 1, limit: 50 })
         const list = Array.isArray(res) ? res : (res?.data || [])
-        const mapped = list.map((it) => ({
-          id: it.id ?? it.slug ?? crypto.randomUUID?.() ?? String(Math.random()),
-          name: it.name || it.title || 'Producto',
-          price: Number(it.effective_price ?? it.price ?? 0),
-          category: it.category?.name || it.category || 'General',
-          image: it.primary_image_url || it.image || imgA,
-        }))
-        if (mounted && mapped.length) setProducts(mapped)
+        
+        // Filtrar solo productos activos
+        const activeProducts = list.filter(p => p.is_active !== false)
+        
+        // Para cada producto, obtener su primera imagen
+        const productsWithImages = await Promise.all(
+          activeProducts.map(async (product) => {
+            let imageUrl = imgA // Imagen por defecto
+            try {
+              const imagesRes = await productImageService.list({ product_id: product.id })
+              const images = Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || [])
+              if (images.length > 0) {
+                // Ordenar por sort_order y tomar la primera
+                const sortedImages = images.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+                imageUrl = sortedImages[0].url
+              }
+            } catch (err) {
+              console.warn(`No se pudieron cargar imágenes para producto ${product.id}`, err)
+            }
+            
+            return {
+              id: product.id,
+              name: product.name || 'Producto',
+              price: Number(product.price || 0),
+              category: product.brand || 'General', // Usar brand como categoría por ahora
+              image: imageUrl,
+              description: product.description || '',
+              currency: product.currency || 'CLP'
+            }
+          })
+        )
+        
+        if (mounted) {
+          setProducts(productsWithImages)
+        }
       } catch (err) {
-        console.warn('No se pudieron cargar productos desde API, usando mock.', err)
-        // Removido showNotification para evitar bucle infinito
-        // if (showNotification) showNotification('Mostrando productos de ejemplo', 'info')
+        console.error('Error cargando productos:', err)
+        if (mounted) {
+          // Usar productos de ejemplo en caso de error
+          setProducts(SAMPLE_PRODUCTS)
+        }
       } finally {
         if (mounted) setLoading(false)
       }
@@ -58,7 +89,7 @@ export default function ProductsSection() {
   }, [])
 
   const handleAdd = (product) => addItem(product)
-  const handleOpen = (product) => setLightboxImage(product.image)
+  const handleOpen = (product) => setLightboxProduct(product)
 
   return (
     <section className="products-section py-5">
@@ -83,7 +114,7 @@ export default function ProductsSection() {
           </div>
         )}
       </div>
-      <Lightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
+      <Lightbox product={lightboxProduct} onClose={() => setLightboxProduct(null)} />
     </section>
   )
 }
