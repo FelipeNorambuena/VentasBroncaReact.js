@@ -1,14 +1,21 @@
 import React, { useState } from 'react'
+import { productImageService } from '../services/productImage'
 
 export default function ProductModal({ show, onClose, product = null, onSave }) {
+  if (!show) return null;
+
   const [form, setForm] = useState({
-    nombre: product?.nombre || '',
-    sku: product?.sku || '',
-    descripcion: product?.descripcion || '',
-    precio: product?.precio || '',
-    stock: product?.stock || '',
-    stockCritico: product?.stockCritico || '',
-    categoria: product?.categoria || ''
+    name: product?.name || '',
+    slug: product?.slug || '',
+    description: product?.description || '',
+    brand: product?.brand || '',
+    price: product?.price || '',
+    compare_at_price: product?.compare_at_price || '',
+    currency: product?.currency || 'CLP',
+    is_active: product?.is_active ?? true,
+    tags: product?.tags ? product.tags.join(',') : '',
+    attributes: product?.attributes || '',
+    category_id: product?.category_id || ''
   })
   
   const [imagenes, setImagenes] = useState([])
@@ -23,7 +30,7 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     const newImages = files.map((file, index) => ({
       file,
       preview: URL.createObjectURL(file),
-      esPrincipal: imagenes.length === 0 && index === 0, // Primera imagen es principal por defecto
+      esPrincipal: imagenes.length === 0 && index === 0,
       id: Date.now() + index
     }))
     setImagenes([...imagenes, ...newImages])
@@ -34,104 +41,111 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
   }
 
   const setAsPrincipal = (id) => {
-    setImagenes(imagenes.map(img => ({
-      ...img,
-      esPrincipal: img.id === id
-    })))
+    setImagenes(imagenes.map(img => ({ ...img, esPrincipal: img.id === id })))
   }
 
-  const removeExistingImage = (id) => {
-    setImagenesExistentes(imagenesExistentes.filter(img => img.id !== id))
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let productData = { ...form };
+    
+    // Convertir tags a array si es string
+    if (typeof productData.tags === 'string') {
+      productData.tags = productData.tags.split(',').map(t => t.trim()).filter(Boolean);
+    }
+    
+    try {
+      // Crear o actualizar producto
+      const created = await onSave(productData);
+      
+      // Subir imágenes si hay y si el producto fue creado
+      if (imagenes.length > 0 && created?.id) {
+        for (let i = 0; i < imagenes.length; i++) {
+          const img = imagenes[i];
+          const formImg = new FormData();
+          formImg.append('product_id', created.id);
+          formImg.append('file', img.file);
+          formImg.append('alt', img.file.name);
+          formImg.append('sort_order', i);
+          await productImageService.create(formImg);
+        }
+      }
+      
+      // Resetear formulario
+      setForm({
+        name: '', slug: '', description: '', brand: '', price: '', 
+        compare_at_price: '', currency: 'CLP', is_active: true, 
+        tags: '', attributes: '', category_id: ''
+      });
+      setImagenes([]);
+      setImagenesExistentes([]);
+      onClose();
+    } catch (err) {
+      console.error('Error al guardar producto:', err);
+      // No mostramos alert aquí, el error se propaga a AdminProductos
+    }
   }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const formData = new FormData()
-    
-    // Datos del producto
-    Object.keys(form).forEach(key => {
-      formData.append(key, form[key])
-    })
-    
-    // Imágenes nuevas
-    imagenes.forEach((img, index) => {
-      formData.append('imagenes', img.file)
-      formData.append(`imagen_${index}_principal`, img.esPrincipal)
-    })
-    
-    // Imágenes existentes a mantener/eliminar
-    formData.append('imagenesExistentes', JSON.stringify(imagenesExistentes))
-    
-    onSave(formData)
-  }
-
-  if (!show) return null
 
   return (
     <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
-        <div className="modal-content">
+      <div className="modal-dialog modal-lg" style={{ maxWidth: 900 }}>
+        <div className="modal-content" style={{ display: 'flex', flexDirection: 'column', height: '90vh' }}>
           <div className="modal-header">
-            <h5 className="modal-title">
-              {product ? 'Editar Producto' : 'Nuevo Producto'}
-            </h5>
+            <h5 className="modal-title">{product ? 'Editar Producto' : 'Nuevo Producto'}</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+            <div className="modal-body" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
               {/* Datos básicos del producto */}
               <div className="row g-3 mb-4">
                 <div className="col-md-6">
-                  <label className="form-label">Nombre del Producto</label>
-                  <input className="form-control" name="nombre" value={form.nombre} onChange={handleChange} required />
+                  <label className="form-label">Nombre *</label>
+                  <input className="form-control" name="name" value={form.name} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">SKU</label>
-                  <input className="form-control" name="sku" value={form.sku} onChange={handleChange} required />
+                  <label className="form-label">Slug *</label>
+                  <input className="form-control" name="slug" value={form.slug} onChange={handleChange} required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Marca</label>
+                  <input className="form-control" name="brand" value={form.brand} onChange={handleChange} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Categoría (ID)</label>
+                  <input className="form-control" name="category_id" type="number" value={form.category_id} onChange={handleChange} />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Precio</label>
-                  <input className="form-control" name="precio" type="number" value={form.precio} onChange={handleChange} required />
+                  <label className="form-label">Precio *</label>
+                  <input className="form-control" name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Stock</label>
-                  <input className="form-control" name="stock" type="number" value={form.stock} onChange={handleChange} required />
+                  <label className="form-label">Precio Comparativo</label>
+                  <input className="form-control" name="compare_at_price" type="number" step="0.01" value={form.compare_at_price} onChange={handleChange} />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Stock Crítico</label>
-                  <input className="form-control" name="stockCritico" type="number" value={form.stockCritico} onChange={handleChange} required />
+                  <label className="form-label">Moneda</label>
+                  <input className="form-control" name="currency" value={form.currency} onChange={handleChange} placeholder="CLP" />
                 </div>
                 <div className="col-12">
                   <label className="form-label">Descripción</label>
-                  <textarea className="form-control" name="descripcion" rows={3} value={form.descripcion} onChange={handleChange}></textarea>
+                  <textarea className="form-control" name="description" rows={3} value={form.description} onChange={handleChange}></textarea>
+                </div>
+                <div className="col-12">
+                  <label className="form-label">Tags (separados por coma)</label>
+                  <input className="form-control" name="tags" value={form.tags} onChange={handleChange} placeholder="camping, outdoor, militar" />
+                </div>
+                <div className="col-12">
+                  <label className="form-label">Atributos (JSON)</label>
+                  <input className="form-control" name="attributes" value={form.attributes} onChange={handleChange} placeholder='{"color": "verde", "talla": "M"}' />
+                </div>
+                <div className="col-12">
+                  <label className="form-label">¿Activo?</label>
+                  <select className="form-select" name="is_active" value={form.is_active ? '1' : '0'} onChange={e => setForm(f => ({ ...f, is_active: e.target.value === '1' }))}>
+                    <option value="1">Sí</option>
+                    <option value="0">No</option>
+                  </select>
                 </div>
               </div>
-
-              {/* Sección de imágenes existentes */}
-              {imagenesExistentes.length > 0 && (
-                <div className="mb-4">
-                  <h6>Imágenes Actuales</h6>
-                  <div className="row g-2">
-                    {imagenesExistentes.map(img => (
-                      <div key={img.id} className="col-md-3">
-                        <div className="card">
-                          <img src={img.url} className="card-img-top" style={{ height: 120, objectFit: 'cover' }} />
-                          <div className="card-body p-2">
-                            <div className="form-check mb-1">
-                              <input className="form-check-input" type="radio" name="principalExistente" checked={img.esPrincipal} readOnly />
-                              <label className="form-check-label small">Principal</label>
-                            </div>
-                            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeExistingImage(img.id)}>
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Subir nuevas imágenes */}
               <div className="mb-4">
@@ -143,31 +157,31 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
                   accept="image/*"
                   onChange={handleImageUpload}
                 />
-                <small className="form-text text-muted">Puedes seleccionar múltiples imágenes. La primera será la imagen principal por defecto.</small>
+                <small className="form-text text-muted">Puedes seleccionar múltiples imágenes.</small>
               </div>
 
               {/* Preview de nuevas imágenes */}
               {imagenes.length > 0 && (
                 <div className="mb-4">
                   <h6>Nuevas Imágenes</h6>
-                  <div className="row g-2">
+                  <div
+                    className="row g-2"
+                    style={{
+                      maxHeight: 220,
+                      overflowY: 'auto',
+                      border: '1px solid #eee',
+                      borderRadius: 8,
+                      padding: 8,
+                      background: '#fafbfc'
+                    }}
+                  >
                     {imagenes.map(img => (
-                      <div key={img.id} className="col-md-3">
+                      <div key={img.id} className="col-md-3 col-6">
                         <div className="card">
-                          <img src={img.preview} className="card-img-top" style={{ height: 120, objectFit: 'cover' }} />
+                          <img src={img.preview} className="card-img-top" alt="Preview" style={{ height: 120, objectFit: 'cover' }} />
                           <div className="card-body p-2">
-                            <div className="form-check mb-1">
-                              <input 
-                                className="form-check-input" 
-                                type="radio" 
-                                name="principal"
-                                checked={img.esPrincipal}
-                                onChange={() => setAsPrincipal(img.id)}
-                              />
-                              <label className="form-check-label small">Principal</label>
-                            </div>
-                            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeImage(img.id)}>
-                              <i className="fas fa-trash"></i>
+                            <button type="button" className="btn btn-danger btn-sm w-100" onClick={() => removeImage(img.id)}>
+                              <i className="fas fa-trash"></i> Eliminar
                             </button>
                           </div>
                         </div>
@@ -178,7 +192,7 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
               )}
             </div>
             
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ background: '#fff', zIndex: 2 }}>
               <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
               <button type="submit" className="btn btn-primary">
                 {product ? 'Actualizar' : 'Crear'} Producto
