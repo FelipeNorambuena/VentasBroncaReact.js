@@ -1,0 +1,30 @@
+.hero-section .carousel-caption {
+  background: rgba(0, 0, 0, 0.55); /* Fondo oscuro translúcido */
+  border-radius: 1rem;
+  padding: 2rem 2.5rem;
+  color: #fff !important;
+  text-shadow: 0 2px 8px #000, 0 1px 0 #222;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25);
+}
+
+.hero-section .carousel-caption h1,
+.hero-section .carousel-caption h2 {
+  color: #fff !important;
+  text-shadow: 0 2px 8px #000, 0 1px 0 #222;
+}
+
+.hero-section .carousel-caption p {
+  color: #f1f1f1;
+  text-shadow: 0 1px 4px #000;
+}
+
+.hero-section .carousel-caption .btn {
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.18);
+}
+
+@media (max-width: 768px) {
+  .hero-section .carousel-caption {
+    padding: 1.2rem 0.7rem;
+    font-size: 1rem;
+  }
+}

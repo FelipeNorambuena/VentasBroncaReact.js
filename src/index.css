@@ -28,6 +28,10 @@ body {
   /* avoid centering the entire app with flex — keep normal document flow */
   min-width: 320px;
   min-height: 100vh;
+  background-image: url('/fondo-tactico.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 h1 {
@@ -80,3 +84,10 @@ button:focus-visible {
     background-color: #1a1a1a;
   }
 }
+
+/* Mejora de contraste para la sección Sobre VentasBronca y equipo */
+.about-section, .about-section *, .about-team, .about-team * {
+  color: #fff !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.45);
+}
+

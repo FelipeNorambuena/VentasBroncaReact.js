@@ -51,10 +51,6 @@ export default function CartModal() {
               )}
             </div>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="fas fa-arrow-left me-1"></i>Seguir comprando</button>
-            <button id="checkout-btn" className="btn btn-success" disabled={items.length === 0}><i className="fab fa-whatsapp me-1"></i>Finalizar pedido por WhatsApp</button>
-          </div>
         </div>
       </div>
     </div>
