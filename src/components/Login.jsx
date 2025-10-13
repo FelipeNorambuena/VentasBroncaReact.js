@@ -40,11 +40,14 @@ export default function Login() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    // Solo redirigir si viene con parámetro ?redirect=true
     try {
       const token = localStorage.getItem('ventasbronca_token')
       const expires = Number(localStorage.getItem('ventasbronca_token_expires') || 0)
-      if (token && expires && Date.now() < expires) {
-        const params = new URLSearchParams(window.location.search)
+      const params = new URLSearchParams(window.location.search)
+      const shouldRedirect = params.get('redirect') === 'true'
+      
+      if (token && expires && Date.now() < expires && shouldRedirect) {
         const next = params.get('next') || '/'
         navigate(next, { replace: true })
       }
@@ -112,7 +115,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn btn-success w-100 mb-2" disabled={loading}>{loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Iniciar sesión'}</button>
-          <button type="button" className="btn btn-outline-primary w-100" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/registro'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Registrar usuario nuevo</button>
+          <button type="button" className="btn btn-outline-primary w-100" onClick={(e) => { e.preventDefault(); navigate('/registro'); }}>Registrar usuario nuevo</button>
 
           {message ? (
             <div className={`alert alert-${message.type} mt-3`} role={message.type === 'success' ? 'status' : 'alert'}>
