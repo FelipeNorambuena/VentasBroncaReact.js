@@ -14,7 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const navigate = useNavigate()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, isAdmin } = useAuth()
 
   useEffect(() => {
     // Redirigir si ya está autenticado
@@ -41,24 +41,49 @@ export default function Login() {
     if (!validate()) return
     setLoading(true)
     authService.login({ email, password })
-      .then((result) => {
-        setLoading(false)
-        if (result) {
-          const token = result?.token || result?.authToken || result?.data?.token || ''
-          const user = result?.user || result?.data?.user || result
-          
-          if (token) setAuthToken(token)
-          login(user, token)
-          
-          setMessage({ type: 'success', text: '¡Bienvenido! Redirigiendo...' })
-          setTimeout(() => {
-            const params = new URLSearchParams(window.location.search)
-            const next = params.get('next') || '/'
-            navigate(next, { replace: true })
-          }, 700)
-        } else {
+      .then(async (result) => {
+        if (!result) {
+          setLoading(false)
           setMessage({ type: 'danger', text: 'Credenciales incorrectas' })
+          return
         }
+
+        // 1) Obtener token del login
+        const token = result?.token || result?.authToken || result?.data?.token || ''
+        if (token) setAuthToken(token)
+
+        // 2) Intentar obtener el usuario de la respuesta; si no viene con rol/email, pedir /auth/me
+        let user = result?.user || result?.data?.user
+        if (!user || (!user.role && !user.rol && !user.email && !user.correo)) {
+          try {
+            user = await authService.me()
+          } catch (e) {
+            // Si /me falla, al menos procede como cliente
+            user = user || {}
+          }
+        }
+
+        // 3) Guardar en el contexto
+        login(user || {}, token)
+
+        // 4) Calcular rol con soporte a 'role' y 'rol' (o heurística por email)
+        const rawRole = (user?.role ?? user?.rol ?? '').toString().toLowerCase().trim()
+        const emailLower = (user?.email ?? user?.correo ?? '').toString().toLowerCase()
+        const isAdminUser = rawRole === 'admin' || rawRole === 'administrador' || Boolean(user?.is_admin || user?.admin) ||
+          (emailLower && (emailLower.startsWith('admin@') || emailLower.includes('@admin.') || emailLower.endsWith('.admin')))
+        const role = isAdminUser ? 'admin' : 'cliente'
+
+        // 5) Redirigir
+        const redirectPath = role === 'admin' ? '/admin' : '/'
+        const params = new URLSearchParams(window.location.search)
+        const next = params.get('next') || redirectPath
+
+        setMessage({
+          type: 'success',
+          text: role === 'admin' ? '¡Bienvenido Admin! Redirigiendo...' : '¡Bienvenido! Redirigiendo...'
+        })
+        setLoading(false)
+        setTimeout(() => navigate(next, { replace: true }), 700)
       })
       .catch((err) => {
         setLoading(false)

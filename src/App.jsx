@@ -14,6 +14,7 @@ import BlogList from './components/BlogList'
 import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
+import AdminInstructions from './components/AdminInstructions'
 import Notification from './components/Notification'
 import ConfirmModal from './components/ConfirmModal'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
@@ -62,6 +63,7 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/admin-help" element={<AdminInstructions />} />
         <Route path="/nosotros" element={<About />} />
         <Route path="/blogs" element={<BlogList />} />
         <Route path="/blogs/:id" element={<BlogPost />} />

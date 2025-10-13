@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 export default function Navbar() {
   const { totalItems } = useContext(CartContext)
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const navigate = useNavigate()
   const path = typeof window !== 'undefined' ? window.location.pathname : '/'
@@ -130,16 +130,45 @@ export default function Navbar() {
                         <ul className="dropdown-menu dropdown-menu-end show position-absolute" style={{ zIndex: 1050 }}>
                           <li><h6 className="dropdown-header">{user?.name || user?.email}</h6></li>
                           <li><hr className="dropdown-divider" /></li>
-                          <li>
-                            <button className="dropdown-item" onClick={handleProfileClick}>
-                              <i className="bi bi-person me-2"></i>Mi Perfil
-                            </button>
-                          </li>
-                          <li>
-                            <button className="dropdown-item" onClick={handleOrdersClick}>
-                              <i className="bi bi-bag me-2"></i>Mis Pedidos
-                            </button>
-                          </li>
+                          {isAdmin() ? (
+                            // Opciones para administrador
+                            <>
+                              <li>
+                                <button className="dropdown-item" onClick={() => { setDropdownOpen(false); navigate('/admin'); }}>
+                                  <i className="bi bi-speedometer2 me-2"></i>Panel Admin
+                                </button>
+                              </li>
+                              <li>
+                                <button className="dropdown-item" onClick={() => { setDropdownOpen(false); navigate('/admin/productos'); }}>
+                                  <i className="bi bi-box me-2"></i>Gestionar Productos
+                                </button>
+                              </li>
+                              <li>
+                                <button className="dropdown-item" onClick={() => { setDropdownOpen(false); navigate('/admin/usuarios'); }}>
+                                  <i className="bi bi-people me-2"></i>Gestionar Usuarios
+                                </button>
+                              </li>
+                              <li>
+                                <button className="dropdown-item" onClick={handleProfileClick}>
+                                  <i className="bi bi-person me-2"></i>Mi Perfil
+                                </button>
+                              </li>
+                            </>
+                          ) : (
+                            // Opciones para cliente
+                            <>
+                              <li>
+                                <button className="dropdown-item" onClick={handleProfileClick}>
+                                  <i className="bi bi-person me-2"></i>Mi Perfil
+                                </button>
+                              </li>
+                              <li>
+                                <button className="dropdown-item" onClick={handleOrdersClick}>
+                                  <i className="bi bi-bag me-2"></i>Mis Pedidos
+                                </button>
+                              </li>
+                            </>
+                          )}
                           <li><hr className="dropdown-divider" /></li>
                           <li>
                             <button className="dropdown-item text-danger" onClick={handleLogout}>
