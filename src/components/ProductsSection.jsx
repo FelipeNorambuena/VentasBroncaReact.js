@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext'
 import './products-section.css'
 import { productsService } from '../services/products'
 import { productImageService } from '../services/productImage'
+import { getImageUrl } from '../utils/imageHelper'
 
 import imgA from '../assets/images/productos/tactico/MultiusoGerber.jpg'
 import imgB from '../assets/images/productos/tactico/MultiusoGerber2.jpg'
@@ -50,10 +51,20 @@ export default function ProductsSection() {
             try {
               const imagesRes = await productImageService.list({ product_id: product.id })
               const images = Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || [])
+              
+              console.log(`Producto ${product.id} - Imágenes recibidas:`, images) // DEBUG
+              
               if (images.length > 0) {
                 // Ordenar por sort_order y tomar la primera
                 const sortedImages = images.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-                imageUrl = sortedImages[0].url
+                const normalizedUrl = getImageUrl(sortedImages[0])
+                
+                if (normalizedUrl) {
+                  imageUrl = normalizedUrl
+                  console.log(`Producto ${product.id} - URL final:`, imageUrl) // DEBUG
+                }
+              } else {
+                console.log(`Producto ${product.id} - Sin imágenes, usando default`) // DEBUG
               }
             } catch (err) {
               console.warn(`No se pudieron cargar imágenes para producto ${product.id}`, err)
@@ -63,7 +74,7 @@ export default function ProductsSection() {
               id: product.id,
               name: product.name || 'Producto',
               price: Number(product.price || 0),
-              category: product.brand || 'General', // Usar brand como categoría por ahora
+              category: product.brand || 'General',
               image: imageUrl,
               description: product.description || '',
               currency: product.currency || 'CLP'

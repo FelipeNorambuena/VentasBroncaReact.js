@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { productImageService } from '../services/productImage'
+import { getImageUrl } from '../utils/imageHelper'
 
 export default function ProductPreviewModal({ show, onClose, product }) {
   const [images, setImages] = useState([])
@@ -18,9 +19,16 @@ export default function ProductPreviewModal({ show, onClose, product }) {
     try {
       const res = await productImageService.list({ product_id: product.id })
       const imageList = Array.isArray(res) ? res : (res?.data || [])
-      setImages(imageList)
-      if (imageList.length > 0) {
-        setSelectedImage(imageList[0])
+      
+      // Normalizar URLs de todas las imágenes
+      const normalizedImages = imageList.map(img => ({
+        ...img,
+        normalizedUrl: getImageUrl(img) || img.url
+      }))
+      
+      setImages(normalizedImages)
+      if (normalizedImages.length > 0) {
+        setSelectedImage(normalizedImages[0])
       }
     } catch (err) {
       console.error('Error cargando imágenes:', err)
@@ -61,7 +69,7 @@ export default function ProductPreviewModal({ show, onClose, product }) {
                       {/* Imagen principal */}
                       <div className="mb-3 border rounded p-2 bg-light" style={{ minHeight: 300 }}>
                         <img 
-                          src={selectedImage?.url} 
+                          src={selectedImage?.normalizedUrl || selectedImage?.url} 
                           alt={selectedImage?.alt || product.name}
                           className="img-fluid rounded"
                           style={{ width: '100%', height: 300, objectFit: 'contain' }}
@@ -79,7 +87,7 @@ export default function ProductPreviewModal({ show, onClose, product }) {
                               style={{ cursor: 'pointer', minWidth: 80 }}
                             >
                               <img 
-                                src={img.url} 
+                                src={img.normalizedUrl || img.url} 
                                 alt={img.alt}
                                 className="rounded"
                                 style={{ width: 80, height: 80, objectFit: 'cover' }}

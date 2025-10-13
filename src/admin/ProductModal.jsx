@@ -63,9 +63,17 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
           const img = imagenes[i];
           const formImg = new FormData();
           formImg.append('product_id', created.id);
-          formImg.append('file', img.file);
+          formImg.append('url', img.file); // Xano espera 'url' como nombre del archivo
           formImg.append('alt', img.file.name);
           formImg.append('sort_order', i);
+          
+          console.log('Subiendo imagen:', {
+            product_id: created.id,
+            filename: img.file.name,
+            size: img.file.size,
+            type: img.file.type
+          }); // DEBUG
+          
           await productImageService.create(formImg);
         }
       }
