@@ -1,4 +1,5 @@
 import React from 'react'
+import { useParams } from 'react-router-dom'
 
 const POSTS_BY_SLUG = {
   'paracord-espacio': {
@@ -22,9 +23,7 @@ const POSTS_BY_SLUG = {
 }
 
 export default function BlogPost() {
-  const path = typeof window !== 'undefined' ? window.location.pathname : ''
-  const parts = path.split('/')
-  const slug = parts[parts.length - 1]
+  const { slug } = useParams()
   const post = POSTS_BY_SLUG[slug]
 
   if (!post) {
@@ -38,8 +37,8 @@ export default function BlogPost() {
 
   return (
     <main className="container py-5 mt-5">
-      <h1 className="display-5 fw-bold mb-3">{post.title}</h1>
-      {post.content}
+      <h1 className="display-5 fw-bold mb-4">{post.title}</h1>
+      <div>{post.content}</div>
     </main>
   )
 }

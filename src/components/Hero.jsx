@@ -1,6 +1,8 @@
 import React, { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 import slideImg from '../assets/images/5803438.jpg'
+import './hero.css'
+import { Link } from 'react-router-dom'
 
 export default function Hero() {
   const { addItem } = useContext(CartContext)
@@ -25,7 +27,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h1 className="display-4 fw-bold">Productos Tácticos de Calidad</h1>
                 <p className="lead">Encuentra el mejor equipamiento militar y táctico para profesionales</p>
-                <a href="#productos-destacados" className="btn btn-primary btn-lg">Ver Productos</a>
+                <Link to="/" className="btn btn-primary btn-lg">Ver Productos</Link>
                 <button className="btn btn-outline-light btn-lg ms-2" onClick={addSample}>
                   Añadir muestra
                 </button>
@@ -37,7 +39,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h2 className="display-4 fw-bold">Equipamiento para Camping</h2>
                 <p className="lead">Todo lo que necesitas para tus aventuras al aire libre</p>
-                <a href="#productos-destacados" className="btn btn-success btn-lg">Explorar</a>
+                <Link to="/" className="btn btn-success btn-lg">Explorar</Link>
               </div>
             </div>
 
@@ -46,7 +48,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h2 className="display-4 fw-bold">Accesorios Especializados</h2>
                 <p className="lead">Herramientas y accesorios de la más alta calidad</p>
-                <a href="#productos-destacados" className="btn btn-warning btn-lg">Descubrir</a>
+                <Link to="/" className="btn btn-warning btn-lg">Descubrir</Link>
               </div>
             </div>
           </div>

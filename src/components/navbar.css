@@ -1,0 +1,58 @@
+/* ==================== NAVBAR (explicado en español) ==================== */
+/* Media query para pantallas de escritorio: aplica cambios cuando el ancho >= 992px */
+@media (min-width: 992px) {
+  .navbar {
+    /* espacio interior superior del navbar (separación entre borde y contenido) */
+    padding-top: 0.8rem;
+    /* espacio interior inferior del navbar */
+    padding-bottom: 0.8rem;
+    /* altura mínima del navbar para darle mayor presencia en pantallas grandes */
+    min-height: 72px;
+  }
+  .navbar .navbar-brand {
+    /* margen derecho del elemento de marca (logo o nombre) para separarlo del menú */
+    margin-right: 1.25rem;
+  }
+  .navbar .nav-link {
+    /* padding vertical y horizontal de los enlaces del menú para mejor área táctil */
+    padding: 0.6rem 0.9rem;
+    /* ajuste fino del tamaño de fuente en desktop */
+    font-size: 0.98rem;
+  }
+  .navbar .btn.btn-sm {
+    /* padding vertical para botones con clase .btn-sm dentro del navbar */
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+}
+
+
+/* Estilo aplicado al enlace activo del navbar (la página/ sección actual) */
+.navbar .nav-link.active {
+  /* color del texto para el enlace activo (primario de Bootstrap) */
+  color: #0b5ed7 !important;
+  /* fondo sutil alrededor del enlace activo para destacarlo */
+  background-color: rgba(11,94,215,0.06);
+  /* bordes redondeados para el fondo del enlace activo */
+  border-radius: 6px;
+  /* peso de fuente mayor para enfatizar el enlace activo */
+  font-weight: 600;
+}
+
+/* Efectos para botones con borde (outline) cuando están activos */
+.navbar .btn-outline-secondary.active,
+.navbar .btn-outline-success.active {
+  /* halo de sombra alrededor del botón activo para indicar foco/actividad */
+  box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.12);
+  /* ligera elevación visual para dar sensación de interacción */
+  transform: translateY(-1px);
+}
+
+/* Ajuste específico para el botón del carrito dentro del navbar */
+.navbar .nav-cart-btn {
+  /* padding interno del botón del carrito (vertical, horizontal) */
+  padding: 0.45rem 0.7rem;
+  /* texto del botón con mayor peso para mejor legibilidad */
+  font-weight: 600;
+}
+/* ======================================================================= */
