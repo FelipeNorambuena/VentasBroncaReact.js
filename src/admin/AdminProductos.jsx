@@ -3,6 +3,7 @@ import ProductModal from './ProductModal'
 import ProductPreviewModal from './ProductPreviewModal'
 import Toast from '../components/Toast'
 import { productsService } from '../services/products'
+import { productImageService } from '../services/productImage'
 import { useAuth } from '../context/AuthContext'
 
 export default function AdminProductos() {
@@ -37,6 +38,10 @@ export default function AdminProductos() {
       try {
         const res = await productsService.list({ page, limit })
         const list = Array.isArray(res) ? res : (res?.data || [])
+        
+        console.log('📦 Productos recibidos de Xano:', list) // DEBUG: Ver estructura completa
+        console.log('📦 Primer producto con detalle:', list[0]) // DEBUG: Ver un producto completo
+        
         const mapped = list.map((it) => ({
           id: it.id,
           name: it.name || '',
@@ -51,8 +56,15 @@ export default function AdminProductos() {
           attributes: it.attributes || '',
           category_id: it.category_id || null,
           created_at: it.created_at,
-          updated_at: it.updated_at
+          updated_at: it.updated_at,
+          // Incluir las imágenes que vienen desde la relación de Xano
+          // Xano puede usar guion bajo _ al inicio según la configuración del Addon
+          imagen_producto_of_product: it._imagen_producto_of_product || it.imagen_producto_of_product || [],
+          imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
         }))
+        
+        console.log('📦 Productos mapeados:', mapped) // DEBUG: Ver si las imágenes están incluidas
+        
         if (mounted) setItems(mapped)
       } catch (err) {
         console.error('No se pudo cargar productos', err)
@@ -70,7 +82,9 @@ export default function AdminProductos() {
     setShowModal(true)
   }
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = async (product) => {
+    // Las imágenes ya vienen con el producto desde la relación de Xano
+    // No es necesario cargarlas por separado
     setEditingProduct(product)
     setShowModal(true)
   }

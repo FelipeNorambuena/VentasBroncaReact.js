@@ -14,15 +14,19 @@ export function normalizeImageUrl(url) {
   }
   
   // Si es una URL relativa, construir la URL completa
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://xgr5-x13i-gx4c.n7c.xano.io/api:trIO7Z5n'
+  // Para archivos de Xano (/vault/...), usar el dominio base SIN el path de la API
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n'
+  
+  // Extraer solo el dominio (sin /api:xxx)
+  const domain = baseUrl.split('/api:')[0]
   
   // Si la URL empieza con /, no duplicar la barra
-  return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`
+  return url.startsWith('/') ? `${domain}${url}` : `${domain}/${url}`
 }
 
 /**
  * Extrae la URL de un objeto de imagen de Xano
- * Xano puede devolver diferentes campos: url, image, file, path, etc.
+ * Xano puede devolver diferentes campos: imagen (texto/URL), url, image, file, path, etc.
  * @param {Object} imageObject - Objeto de imagen de Xano
  * @returns {string|null} - URL normalizada o null
  */
@@ -33,8 +37,18 @@ export function getImageUrl(imageObject) {
   
   let rawUrl = null
   
+  // Prioridad 1: Campo 'imagen' como texto (nuevo formato con URLs)
+  if (imageObject.imagen && typeof imageObject.imagen === 'string') {
+    rawUrl = imageObject.imagen
+    console.log('getImageUrl - URL desde texto imagen:', rawUrl) // DEBUG
+  }
+  // Prioridad 2: Campo 'imagen' como objeto (formato antiguo)
+  else if (imageObject.imagen && typeof imageObject.imagen === 'object') {
+    rawUrl = imageObject.imagen.path || imageObject.imagen.url || imageObject.imagen.name
+    console.log('getImageUrl - URL desde objeto imagen.path:', rawUrl) // DEBUG
+  }
   // Si url es un objeto (formato Xano con {path, name, etc})
-  if (imageObject.url && typeof imageObject.url === 'object') {
+  else if (imageObject.url && typeof imageObject.url === 'object') {
     rawUrl = imageObject.url.path || imageObject.url.url || imageObject.url.name
     console.log('getImageUrl - URL desde objeto url.path:', rawUrl) // DEBUG
   } 

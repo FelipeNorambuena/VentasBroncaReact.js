@@ -44,43 +44,41 @@ export default function ProductsSection() {
         // Filtrar solo productos activos
         const activeProducts = list.filter(p => p.is_active !== false)
         
-        // Para cada producto, obtener su primera imagen
-        const productsWithImages = await Promise.all(
-          activeProducts.map(async (product) => {
-            let imageUrl = imgA // Imagen por defecto
-            try {
-              const imagesRes = await productImageService.list({ product_id: product.id })
-              const images = Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || [])
-              
-              console.log(`Producto ${product.id} - Imágenes recibidas:`, images) // DEBUG
-              
-              if (images.length > 0) {
-                // Ordenar por sort_order y tomar la primera
-                const sortedImages = images.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-                const normalizedUrl = getImageUrl(sortedImages[0])
-                
-                if (normalizedUrl) {
-                  imageUrl = normalizedUrl
-                  console.log(`Producto ${product.id} - URL final:`, imageUrl) // DEBUG
-                }
-              } else {
-                console.log(`Producto ${product.id} - Sin imágenes, usando default`) // DEBUG
-              }
-            } catch (err) {
-              console.warn(`No se pudieron cargar imágenes para producto ${product.id}`, err)
-            }
+        // Mapear productos con imágenes (ahora vienen incluidas desde Xano)
+        const productsWithImages = activeProducts.map((product) => {
+          let imageUrl = imgA // Imagen por defecto
+          
+          // Xano puede usar guion bajo _ al inicio según la configuración del Addon
+          const productImages = product._imagen_producto_of_product || 
+                                product.imagen_producto_of_product || 
+                                product.imagenes || []
+          
+          // Si el producto tiene imágenes desde Xano
+          if (productImages.length > 0) {
+            // Buscar imagen principal o tomar la primera por orden
+            const mainImage = productImages.find(img => img.es_principal) || 
+                             productImages.sort((a, b) => (a.orden || 0) - (b.orden || 0))[0]
             
-            return {
-              id: product.id,
-              name: product.name || 'Producto',
-              price: Number(product.price || 0),
-              category: product.brand || 'General',
-              image: imageUrl,
-              description: product.description || '',
-              currency: product.currency || 'CLP'
+            const normalizedUrl = getImageUrl(mainImage)
+            
+            if (normalizedUrl) {
+              imageUrl = normalizedUrl
+              console.log(`Producto ${product.id} - URL desde relación:`, imageUrl)
             }
-          })
-        )
+          } else {
+            console.log(`Producto ${product.id} - Sin imágenes, usando default`)
+          }
+          
+          return {
+            id: product.id,
+            name: product.name || 'Producto',
+            price: Number(product.price || 0),
+            category: product.brand || 'General',
+            image: imageUrl,
+            description: product.description || '',
+            currency: product.currency || 'CLP'
+          }
+        })
         
         if (mounted) {
           setProducts(productsWithImages)
