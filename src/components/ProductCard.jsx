@@ -9,13 +9,37 @@ export default function ProductCard({ product, onAdd, onOpen }) {
   return (
     <div className="col">
       <div className="card h-100 shadow-sm">
-        <img 
-          src={product.image} 
-          className="card-img-top" 
-          alt={product.name} 
-          style={{ objectFit: 'cover', height: 200, cursor: 'pointer' }} 
-          onClick={() => onOpen(product)}
-        />
+        <div style={{ position: 'relative' }}>
+          <img 
+            src={product.image} 
+            className="card-img-top" 
+            alt={product.name} 
+            style={{ objectFit: 'cover', height: 200, cursor: 'pointer' }} 
+            onClick={() => onOpen(product)}
+          />
+          {/* Badge indicador de múltiples imágenes */}
+          {product.totalImages > 1 && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <i className="fas fa-images"></i>
+              {product.totalImages}
+            </div>
+          )}
+        </div>
         <div className="card-body d-flex flex-column">
           <h6 className="card-title">{product.name}</h6>
           <p className="card-text text-muted small mb-2">

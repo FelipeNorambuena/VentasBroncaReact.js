@@ -41,24 +41,31 @@ export default function ProductsSection() {
         const res = await productsService.list({ page: 1, limit: 50 })
         const list = Array.isArray(res) ? res : (res?.data || [])
         
+        console.log('📦 Productos recibidos del API:', list.length)
+        console.log('📦 Productos completos:', list)
+        
         // Filtrar solo productos activos
         const activeProducts = list.filter(p => p.is_active !== false)
+        console.log('✅ Productos activos después de filtrar:', activeProducts.length)
         
         // Mapear productos con imágenes (ahora vienen incluidas desde Xano)
         const productsWithImages = activeProducts.map((product) => {
           let imageUrl = imgA // Imagen por defecto
+          let totalImages = 0 // Contador de imágenes totales
           
           // ✅ PRIORIDAD 1: Campo 'image' principal (puede venir como array u objeto)
           if (product.image) {
             let imageObject = null
             
-            // Si image es un array, tomar el primer elemento
+            // Si image es un array, tomar el primer elemento y contar total
             if (Array.isArray(product.image) && product.image.length > 0) {
               imageObject = product.image[0]
+              totalImages = product.image.length // Contar todas las imágenes del array
             } 
             // Si image es un objeto directo
             else if (typeof product.image === 'object' && !Array.isArray(product.image)) {
               imageObject = product.image
+              totalImages = 1
             }
             
             // Intentar obtener la URL del objeto
@@ -76,6 +83,8 @@ export default function ProductsSection() {
             const productImages = product._imagen_producto_of_product || 
                                   product.imagen_producto_of_product || 
                                   product.imagenes || []
+            
+            totalImages = productImages.length
             
             // Si el producto tiene imágenes desde Xano
             if (productImages.length > 0) {
@@ -96,16 +105,26 @@ export default function ProductsSection() {
             console.log(`Producto ${product.id} - Sin imágenes, usando default`)
           }
           
-          return {
+          const mappedProduct = {
             id: product.id,
             name: product.name || 'Producto',
             price: Number(product.price || 0),
             category: product.brand || 'General',
             image: imageUrl,
             description: product.description || '',
-            currency: product.currency || 'CLP'
+            currency: product.currency || 'CLP',
+            totalImages: totalImages, // ✅ Agregar conteo de imágenes
+            // ✅ IMPORTANTE: Incluir el campo image completo y las relaciones para el Lightbox
+            _fullProduct: product // Guardamos el producto completo para el Lightbox
           }
+          
+          console.log(`📦 Producto ${product.id} mapeado:`, mappedProduct)
+          
+          return mappedProduct
         })
+        
+        console.log('✅ Total productos mapeados:', productsWithImages.length)
+        console.log('✅ Productos finales:', productsWithImages)
         
         if (mounted) {
           setProducts(productsWithImages)

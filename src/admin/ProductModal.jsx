@@ -93,67 +93,100 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     }
     
     try {
-      // 🎯 NUEVO FLUJO SIMPLIFICADO:
-      // Pasar los datos del producto y el primer archivo de imagen (si existe)
-      // Las funciones createWithImage/updateWithImage harán el resto automáticamente
-      
+      // 🎯 PASO 1: Guardar producto con la primera imagen
       const imageFile = imagenes.length > 0 ? imagenes[0].file : null;
       
       if (imageFile) {
-        console.log(`📤 Se enviará imagen con el producto: ${imageFile.name}`);
+        console.log(`📤 Se enviará imagen principal: ${imageFile.name}`);
       } else {
         console.log('ℹ️ No hay imagen para subir, solo se guardarán los datos');
       }
       
-      // Llamar a onSave con los datos y el archivo
-      // AdminProductos.handleSaveProduct usará createWithImage o updateWithImage
-      await onSave(productData, imageFile);
+      // Guardar el producto y obtener el resultado (incluye el ID)
+      const savedProduct = await onSave(productData, imageFile);
       
-      // Si hay más de una imagen, subir las adicionales usando el flujo anterior
-      if (imagenes.length > 1) {
-        console.log(`📤 Subiendo ${imagenes.length - 1} imagen(es) adicional(es)...`);
+      console.log('✅ Producto guardado:', savedProduct);
+      
+      // 🎯 PASO 2: Si hay más de una imagen, actualizar el campo image con TODAS las imágenes
+      if (imagenes.length > 1 && savedProduct && savedProduct.id) {
+        console.log(`📤 Subiendo ${imagenes.length - 1} imagen(es) adicional(es) y actualizando campo image...`);
         
-        // Obtener el ID del producto del resultado guardado
-        // Aquí asumimos que el producto ya fue creado por onSave
-        const productId = form.id; // Si estamos editando
+        // Array para almacenar TODAS las imágenes (incluyendo la primera)
+        const allImageObjects = [];
         
-        if (productId) {
-          for (let i = 1; i < imagenes.length; i++) {
-            const img = imagenes[i];
+        // La primera imagen ya está en savedProduct.image
+        if (savedProduct.image && Array.isArray(savedProduct.image)) {
+          allImageObjects.push(...savedProduct.image);
+          console.log(`✅ Primera imagen ya en el producto (array):`, savedProduct.image);
+        } else if (savedProduct.image) {
+          allImageObjects.push(savedProduct.image);
+          console.log(`✅ Primera imagen ya en el producto (objeto):`, savedProduct.image);
+        }
+        
+        // Subir las imágenes restantes
+        for (let i = 1; i < imagenes.length; i++) {
+          const img = imagenes[i];
+          console.log(`📤 Subiendo imagen adicional ${i}: ${img.file.name}`);
+          
+          try {
+            // Subir la imagen al servidor
+            const formUpload = new FormData();
+            formUpload.append('content', img.file);
             
-            try {
-              const formUpload = new FormData();
-              formUpload.append('content', img.file);
-              
-              const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/upload/image`;
-              const uploadResponse = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formUpload
-              });
-              
-              if (!uploadResponse.ok) {
-                throw new Error(`Error subiendo imagen: ${uploadResponse.status}`);
-              }
-              
-              const uploadData = await uploadResponse.json();
-              const imageUrl = uploadData[0]?.path || uploadData[0]?.url || uploadData.path || uploadData.url;
-              
-              if (imageUrl) {
-                const formImg = new FormData();
-                formImg.append('id_producto', String(productId));
-                formImg.append('imagen', imageUrl);
-                formImg.append('alt_text', img.file.name || '');
-                formImg.append('orden', String(i + 1));
-                formImg.append('es_principal', img.esPrincipal ? '1' : '0');
-                
-                await productImageService.create(formImg);
-                console.log(`✅ Imagen adicional ${i} subida exitosamente`);
-              }
-            } catch (uploadError) {
-              console.error('❌ Error subiendo imagen adicional:', uploadError);
-              alert(`Error al subir imagen ${img.file.name}: ${uploadError.message}`);
+            const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/upload/image`;
+            const uploadResponse = await fetch(uploadUrl, {
+              method: 'POST',
+              body: formUpload
+            });
+            
+            if (!uploadResponse.ok) {
+              throw new Error(`Error subiendo imagen: ${uploadResponse.status}`);
             }
+            
+            const uploadData = await uploadResponse.json();
+            console.log(`📥 Respuesta upload imagen ${i}:`, uploadData);
+            
+            // Agregar el OBJETO COMPLETO de la imagen al array
+            if (Array.isArray(uploadData) && uploadData.length > 0) {
+              allImageObjects.push(uploadData[0]);
+              console.log(`✅ Imagen adicional ${i} agregada al array`);
+            } else if (uploadData) {
+              allImageObjects.push(uploadData);
+              console.log(`✅ Imagen adicional ${i} agregada al array`);
+            }
+            
+          } catch (uploadError) {
+            console.error(`❌ Error subiendo imagen adicional ${i}:`, uploadError);
+            alert(`Error al subir imagen ${img.file.name}: ${uploadError.message}`);
           }
+        }
+        
+        // Actualizar el producto con el array completo de imágenes
+        console.log(`🔄 Actualizando producto con ${allImageObjects.length} imágenes...`);
+        console.log('📦 Array completo de imágenes:', allImageObjects);
+        
+        try {
+          const updateUrl = `${import.meta.env.VITE_API_BASE_URL}/product/${savedProduct.id}`;
+          const updateResponse = await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              image: allImageObjects
+            })
+          });
+          
+          if (!updateResponse.ok) {
+            throw new Error(`Error actualizando producto: ${updateResponse.status}`);
+          }
+          
+          const updatedProduct = await updateResponse.json();
+          console.log('✅ Producto actualizado con todas las imágenes:', updatedProduct);
+          
+        } catch (updateError) {
+          console.error('❌ Error al actualizar producto con array de imágenes:', updateError);
+          alert(`Error al actualizar producto con imágenes: ${updateError.message}`);
         }
       }
       
