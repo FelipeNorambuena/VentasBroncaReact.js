@@ -27,7 +27,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h1 className="display-4 fw-bold">Productos Tácticos de Calidad</h1>
                 <p className="lead">Encuentra el mejor equipamiento militar y táctico para profesionales</p>
-                <Link to="/" className="btn btn-primary btn-lg">Ver Productos</Link>
+                <Link to="/productos" className="btn btn-primary btn-lg">Ver Productos</Link>
                 <button className="btn btn-outline-light btn-lg ms-2" onClick={addSample}>
                   Añadir muestra
                 </button>
@@ -39,7 +39,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h2 className="display-4 fw-bold">Equipamiento para Camping</h2>
                 <p className="lead">Todo lo que necesitas para tus aventuras al aire libre</p>
-                <Link to="/" className="btn btn-success btn-lg">Explorar</Link>
+                <Link to="/productos" className="btn btn-success btn-lg">Explorar</Link>
               </div>
             </div>
 
@@ -48,7 +48,7 @@ export default function Hero() {
               <div className="carousel-caption d-none d-md-block">
                 <h2 className="display-4 fw-bold">Accesorios Especializados</h2>
                 <p className="lead">Herramientas y accesorios de la más alta calidad</p>
-                <Link to="/" className="btn btn-warning btn-lg">Descubrir</Link>
+                <Link to="/productos" className="btn btn-warning btn-lg">Descubrir</Link>
               </div>
             </div>
           </div>

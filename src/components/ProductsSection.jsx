@@ -6,6 +6,7 @@ import './products-section.css'
 import { productsService } from '../services/products'
 import { productImageService } from '../services/productImage'
 import { getImageUrl } from '../utils/imageHelper'
+import { useSearchParams } from 'react-router-dom'
 
 import imgA from '../assets/images/productos/tactico/MultiusoGerber.jpg'
 import imgB from '../assets/images/productos/tactico/MultiusoGerber2.jpg'
@@ -31,7 +32,10 @@ export default function ProductsSection() {
   const { addItem, showNotification } = useContext(CartContext)
   const [lightboxProduct, setLightboxProduct] = useState(null)
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchParams] = useSearchParams()
+  const searchTerm = searchParams.get('search') || ''
 
   useEffect(() => {
     let mounted = true
@@ -128,12 +132,14 @@ export default function ProductsSection() {
         
         if (mounted) {
           setProducts(productsWithImages)
+          setFilteredProducts(productsWithImages) // Inicialmente mostrar todos
         }
       } catch (err) {
         console.error('Error cargando productos:', err)
         if (mounted) {
           // Usar productos de ejemplo en caso de error
           setProducts(SAMPLE_PRODUCTS)
+          setFilteredProducts(SAMPLE_PRODUCTS)
         }
       } finally {
         if (mounted) setLoading(false)
@@ -143,6 +149,29 @@ export default function ProductsSection() {
     return () => { mounted = false }
   }, [])
 
+  // Efecto para filtrar productos cuando cambie el término de búsqueda
+  useEffect(() => {
+    if (!searchTerm) {
+      // Si no hay búsqueda, mostrar todos los productos
+      setFilteredProducts(products)
+    } else {
+      // Filtrar productos por nombre, descripción o categoría
+      const term = searchTerm.toLowerCase()
+      const filtered = products.filter(product => {
+        const name = (product.name || '').toLowerCase()
+        const description = (product.description || '').toLowerCase()
+        const category = (product.category || '').toLowerCase()
+        
+        return name.includes(term) || 
+               description.includes(term) || 
+               category.includes(term)
+      })
+      
+      console.log(`🔍 Buscando "${searchTerm}": ${filtered.length} resultados de ${products.length} productos`)
+      setFilteredProducts(filtered)
+    }
+  }, [searchTerm, products])
+
   const handleAdd = (product) => addItem(product)
   const handleOpen = (product) => setLightboxProduct(product)
 
@@ -151,8 +180,15 @@ export default function ProductsSection() {
       <div className="container">
         <div className="row mb-4">
           <div className="col-12 text-center">
-            <h1 className="display-6 fw-bold mb-2 products-section-title">Catálogo de Productos</h1>
-            <p className="text-muted products-section-desc">Explora nuestra selección de productos tácticos, militares, camping y más</p>
+            <h1 className="display-6 fw-bold mb-2 products-section-title">
+              {searchTerm ? `Resultados de búsqueda: "${searchTerm}"` : 'Catálogo de Productos'}
+            </h1>
+            <p className="text-muted products-section-desc">
+              {searchTerm 
+                ? `${filteredProducts.length} producto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`
+                : 'Explora nuestra selección de productos tácticos, militares, camping y más'
+              }
+            </p>
             <hr className="mx-auto" style={{ width: 100, height: 3 }} />
           </div>
         </div>
@@ -161,9 +197,20 @@ export default function ProductsSection() {
           <div className="text-center py-5">
             <div className="spinner-border text-success" role="status" aria-live="polite" aria-label="Cargando productos" />
           </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-5">
+            <i className="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 className="text-muted">No se encontraron productos</h5>
+            <p className="text-muted">
+              {searchTerm 
+                ? `No hay productos que coincidan con "${searchTerm}". Intenta con otros términos.`
+                : 'No hay productos disponibles en este momento.'
+              }
+            </p>
+          </div>
         ) : (
           <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" id="catalog-grid" aria-live="polite">
-            {products.map((p) => (
+            {filteredProducts.map((p) => (
               <ProductCard key={p.id} product={p} onAdd={handleAdd} onOpen={handleOpen} />
             ))}
           </div>

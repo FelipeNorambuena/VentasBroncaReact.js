@@ -4,6 +4,40 @@ import { CartContext } from '../context/CartContext'
 export default function CartModal() {
   const { items, totalItems, totalPrice, removeItem, clearCart } = useContext(CartContext)
 
+  // Función para enviar pedido por WhatsApp
+  const sendWhatsAppOrder = () => {
+    if (items.length === 0) {
+      alert('El carrito está vacío')
+      return
+    }
+
+    // Número de WhatsApp del negocio
+    const phoneNumber = '56974161396' // Chile: +56 974161396
+    
+    // Construir el mensaje
+    let message = '🛒 *Nuevo Pedido*\n\n'
+    
+    items.forEach((item, index) => {
+      message += `${index + 1}. *${item.name}*\n`
+      message += `   Cantidad: ${item.quantity}\n`
+      message += `   Precio unitario: $${item.price.toLocaleString('es-CL')}\n`
+      message += `   Subtotal: $${(item.price * item.quantity).toLocaleString('es-CL')}\n\n`
+    })
+    
+    message += `📊 *Total de productos:* ${totalItems}\n`
+    message += `💰 *Total a pagar:* $${totalPrice.toLocaleString('es-CL')}\n\n`
+    message += '¡Gracias por tu pedido! 😊'
+    
+    // Codificar el mensaje para URL
+    const encodedMessage = encodeURIComponent(message)
+    
+    // Crear URL de WhatsApp
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`
+    
+    // Abrir WhatsApp en nueva pestaña
+    window.open(whatsappUrl, '_blank')
+  }
+
   return (
     <div className="modal fade" id="cartModal" tabIndex={-1} aria-labelledby="cartModalLabel" aria-hidden="true">
       <div className="modal-dialog modal-lg modal-dialog-scrollable">
@@ -51,6 +85,28 @@ export default function CartModal() {
               )}
             </div>
           </div>
+          
+          {/* Footer con botones de acción */}
+          {items.length > 0 && (
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn btn-outline-danger" 
+                onClick={clearCart}
+              >
+                <i className="fas fa-trash me-2"></i>
+                Vaciar Carrito
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-success" 
+                onClick={sendWhatsAppOrder}
+              >
+                <i className="fab fa-whatsapp me-2"></i>
+                Finalizar Compra
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
