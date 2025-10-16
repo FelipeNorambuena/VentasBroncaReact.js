@@ -48,24 +48,51 @@ export default function ProductsSection() {
         const productsWithImages = activeProducts.map((product) => {
           let imageUrl = imgA // Imagen por defecto
           
-          // Xano puede usar guion bajo _ al inicio según la configuración del Addon
-          const productImages = product._imagen_producto_of_product || 
-                                product.imagen_producto_of_product || 
-                                product.imagenes || []
-          
-          // Si el producto tiene imágenes desde Xano
-          if (productImages.length > 0) {
-            // Buscar imagen principal o tomar la primera por orden
-            const mainImage = productImages.find(img => img.es_principal) || 
-                             productImages.sort((a, b) => (a.orden || 0) - (b.orden || 0))[0]
+          // ✅ PRIORIDAD 1: Campo 'image' principal (puede venir como array u objeto)
+          if (product.image) {
+            let imageObject = null
             
-            const normalizedUrl = getImageUrl(mainImage)
-            
-            if (normalizedUrl) {
-              imageUrl = normalizedUrl
-              console.log(`Producto ${product.id} - URL desde relación:`, imageUrl)
+            // Si image es un array, tomar el primer elemento
+            if (Array.isArray(product.image) && product.image.length > 0) {
+              imageObject = product.image[0]
+            } 
+            // Si image es un objeto directo
+            else if (typeof product.image === 'object' && !Array.isArray(product.image)) {
+              imageObject = product.image
             }
-          } else {
+            
+            // Intentar obtener la URL del objeto
+            if (imageObject) {
+              const normalizedUrl = getImageUrl(imageObject)
+              if (normalizedUrl) {
+                imageUrl = normalizedUrl
+                console.log(`Producto ${product.id} - URL desde campo 'image':`, imageUrl)
+              }
+            }
+          }
+          // ✅ PRIORIDAD 2: Imágenes relacionadas (tabla imagen_producto)
+          else {
+            // Xano puede usar guion bajo _ al inicio según la configuración del Addon
+            const productImages = product._imagen_producto_of_product || 
+                                  product.imagen_producto_of_product || 
+                                  product.imagenes || []
+            
+            // Si el producto tiene imágenes desde Xano
+            if (productImages.length > 0) {
+              // Buscar imagen principal o tomar la primera por orden
+              const mainImage = productImages.find(img => img.es_principal) || 
+                               productImages.sort((a, b) => (a.orden || 0) - (b.orden || 0))[0]
+              
+              const normalizedUrl = getImageUrl(mainImage)
+              
+              if (normalizedUrl) {
+                imageUrl = normalizedUrl
+                console.log(`Producto ${product.id} - URL desde relación:`, imageUrl)
+              }
+            }
+          }
+          
+          if (!imageUrl || imageUrl === imgA) {
             console.log(`Producto ${product.id} - Sin imágenes, usando default`)
           }
           

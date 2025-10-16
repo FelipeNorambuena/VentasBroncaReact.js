@@ -37,6 +37,13 @@ export function getImageUrl(imageObject) {
   
   let rawUrl = null
   
+  // ✅ PRIORIDAD 0: Si el objeto tiene URL completa (Xano la genera automáticamente)
+  if (imageObject.url && typeof imageObject.url === 'string' && 
+      (imageObject.url.startsWith('http://') || imageObject.url.startsWith('https://'))) {
+    console.log('getImageUrl - URL completa desde objeto.url:', imageObject.url)
+    return imageObject.url // Ya es una URL completa, retornar directamente
+  }
+  
   // Prioridad 1: Campo 'imagen' como texto (nuevo formato con URLs)
   if (imageObject.imagen && typeof imageObject.imagen === 'string') {
     rawUrl = imageObject.imagen
@@ -60,12 +67,16 @@ export function getImageUrl(imageObject) {
   else if (imageObject.file && typeof imageObject.file === 'object') {
     rawUrl = imageObject.file.path || imageObject.file.url
   }
+  // ✅ Prioridad a 'path' antes que otros campos
+  else if (imageObject.path) {
+    rawUrl = imageObject.path
+    console.log('getImageUrl - URL desde objeto.path:', rawUrl)
+  }
   // Intentar diferentes campos comunes (strings)
   else {
     rawUrl = imageObject.url || 
              imageObject.image || 
-             imageObject.file ||
-             imageObject.path
+             imageObject.file
   }
   
   console.log('getImageUrl - URL extraída:', rawUrl) // DEBUG

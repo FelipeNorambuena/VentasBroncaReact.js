@@ -93,72 +93,66 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     }
     
     try {
-      // Crear o actualizar producto
-      const created = await onSave(productData);
+      // 🎯 NUEVO FLUJO SIMPLIFICADO:
+      // Pasar los datos del producto y el primer archivo de imagen (si existe)
+      // Las funciones createWithImage/updateWithImage harán el resto automáticamente
       
-      // Subir imágenes si hay y si el producto fue creado
-      if (imagenes.length > 0 && created?.id) {
-        console.log(`📤 Iniciando subida de ${imagenes.length} imagen(es) para producto ${created.id}`);
+      const imageFile = imagenes.length > 0 ? imagenes[0].file : null;
+      
+      if (imageFile) {
+        console.log(`📤 Se enviará imagen con el producto: ${imageFile.name}`);
+      } else {
+        console.log('ℹ️ No hay imagen para subir, solo se guardarán los datos');
+      }
+      
+      // Llamar a onSave con los datos y el archivo
+      // AdminProductos.handleSaveProduct usará createWithImage o updateWithImage
+      await onSave(productData, imageFile);
+      
+      // Si hay más de una imagen, subir las adicionales usando el flujo anterior
+      if (imagenes.length > 1) {
+        console.log(`📤 Subiendo ${imagenes.length - 1} imagen(es) adicional(es)...`);
         
-        for (let i = 0; i < imagenes.length; i++) {
-          const img = imagenes[i];
-          
-          try {
-            // PASO 1: Subir imagen a /upload/image
-            const formUpload = new FormData();
-            formUpload.append('content', img.file);
+        // Obtener el ID del producto del resultado guardado
+        // Aquí asumimos que el producto ya fue creado por onSave
+        const productId = form.id; // Si estamos editando
+        
+        if (productId) {
+          for (let i = 1; i < imagenes.length; i++) {
+            const img = imagenes[i];
             
-            const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/upload/image`;
-            console.log('📤 Subiendo archivo a URL:', uploadUrl);
-            console.log('📤 Nombre del archivo:', img.file.name);
-            
-            const uploadResponse = await fetch(uploadUrl, {
-              method: 'POST',
-              body: formUpload
-            });
-            
-            if (!uploadResponse.ok) {
-              throw new Error(`Error subiendo imagen: ${uploadResponse.status}`);
+            try {
+              const formUpload = new FormData();
+              formUpload.append('content', img.file);
+              
+              const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/upload/image`;
+              const uploadResponse = await fetch(uploadUrl, {
+                method: 'POST',
+                body: formUpload
+              });
+              
+              if (!uploadResponse.ok) {
+                throw new Error(`Error subiendo imagen: ${uploadResponse.status}`);
+              }
+              
+              const uploadData = await uploadResponse.json();
+              const imageUrl = uploadData[0]?.path || uploadData[0]?.url || uploadData.path || uploadData.url;
+              
+              if (imageUrl) {
+                const formImg = new FormData();
+                formImg.append('id_producto', String(productId));
+                formImg.append('imagen', imageUrl);
+                formImg.append('alt_text', img.file.name || '');
+                formImg.append('orden', String(i + 1));
+                formImg.append('es_principal', img.esPrincipal ? '1' : '0');
+                
+                await productImageService.create(formImg);
+                console.log(`✅ Imagen adicional ${i} subida exitosamente`);
+              }
+            } catch (uploadError) {
+              console.error('❌ Error subiendo imagen adicional:', uploadError);
+              alert(`Error al subir imagen ${img.file.name}: ${uploadError.message}`);
             }
-            
-            const uploadData = await uploadResponse.json();
-            console.log('✅ Imagen subida a Xano:', uploadData);
-            
-            // Extraer la URL de la imagen subida
-            const imageUrl = uploadData[0]?.path || uploadData[0]?.url || uploadData.path || uploadData.url;
-            
-            if (!imageUrl) {
-              throw new Error('No se pudo obtener la URL de la imagen subida');
-            }
-            
-            console.log('🔗 URL de imagen obtenida:', imageUrl);
-            
-            // PASO 2: Guardar referencia en imagen_producto
-            const formImg = new FormData();
-            formImg.append('id_producto', String(created.id));
-            formImg.append('imagen', imageUrl); // Campo 'imagen' para coincidir con la tabla
-            formImg.append('alt_text', img.file.name || '');
-            formImg.append('orden', String(i + 1));
-            formImg.append('es_principal', img.esPrincipal ? '1' : '0');
-            
-            console.log('💾 Guardando referencia en imagen_producto:', {
-              id_producto: created.id,
-              imagen: imageUrl,
-              alt_text: img.file.name,
-              orden: i + 1,
-              es_principal: img.esPrincipal
-            });
-            
-            const result = await productImageService.create(formImg);
-            console.log('✅ Referencia guardada exitosamente:', result);
-            
-          } catch (uploadError) {
-            console.error('❌ Error en el proceso de subida:', uploadError);
-            console.error('❌ Detalles completos del error:', {
-              message: uploadError.message,
-              stack: uploadError.stack
-            });
-            alert(`Error al subir imagen ${img.file.name}: ${uploadError.message}`);
           }
         }
       }

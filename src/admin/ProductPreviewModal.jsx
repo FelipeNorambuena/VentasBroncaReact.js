@@ -7,32 +7,44 @@ export default function ProductPreviewModal({ show, onClose, product }) {
 
   useEffect(() => {
     if (show && product) {
-      // Usar las imágenes que vienen con el producto desde la relación de Xano
+      let foundImages = []
+      
+      // Opción 1: Imagen principal del producto (campo 'image')
+      // Xano retorna 'image' como array, pero después de mapear en AdminProductos viene como objeto
+      if (product.image) {
+        const imageObj = {
+          id: 'main',
+          imagen: product.image,
+          // Si product.image ya es un objeto con path/url, usarlo directamente
+          // Si es string, usarlo tal cual
+          url: product.image?.path || product.image?.url || (typeof product.image === 'string' ? product.image : null),
+          alt_text: product.name,
+          es_principal: true
+        }
+        foundImages.push(imageObj)
+        console.log(`ProductPreview - Imagen principal del producto ${product.id}:`, imageObj)
+      }
+      
+      // Opción 2: Usar las imágenes que vienen con el producto desde la relación de Xano
       // Xano puede usar guion bajo _ al inicio según la configuración del Addon
       if (product._imagen_producto_of_product && product._imagen_producto_of_product.length > 0) {
-        const normalizedImages = product._imagen_producto_of_product.map(img => ({
-          ...img,
-          normalizedUrl: getImageUrl(img)
-        }))
-        
-        setImages(normalizedImages)
-        setSelectedImage(normalizedImages[0])
-        
-        console.log(`ProductPreview - Imágenes del producto ${product.id}:`, normalizedImages)
+        const relatedImages = product._imagen_producto_of_product
+        foundImages.push(...relatedImages)
+        console.log(`ProductPreview - Imágenes relacionadas del producto ${product.id}:`, relatedImages)
       } else if (product.imagen_producto_of_product && product.imagen_producto_of_product.length > 0) {
         // Fallback sin guion bajo
-        const normalizedImages = product.imagen_producto_of_product.map(img => ({
-          ...img,
-          normalizedUrl: getImageUrl(img)
-        }))
-        
-        setImages(normalizedImages)
-        setSelectedImage(normalizedImages[0])
-        
-        console.log(`ProductPreview - Imágenes del producto ${product.id}:`, normalizedImages)
+        const relatedImages = product.imagen_producto_of_product
+        foundImages.push(...relatedImages)
+        console.log(`ProductPreview - Imágenes relacionadas del producto ${product.id}:`, relatedImages)
       } else if (product.imagenes && product.imagenes.length > 0) {
         // Fallback por si el campo se llama "imagenes"
-        const normalizedImages = product.imagenes.map(img => ({
+        const relatedImages = product.imagenes
+        foundImages.push(...relatedImages)
+        console.log(`ProductPreview - Imágenes del producto ${product.id}:`, relatedImages)
+      }
+      
+      if (foundImages.length > 0) {
+        const normalizedImages = foundImages.map(img => ({
           ...img,
           normalizedUrl: getImageUrl(img)
         }))
@@ -40,7 +52,7 @@ export default function ProductPreviewModal({ show, onClose, product }) {
         setImages(normalizedImages)
         setSelectedImage(normalizedImages[0])
         
-        console.log(`ProductPreview - Imágenes del producto ${product.id}:`, normalizedImages)
+        console.log(`ProductPreview - Total de imágenes para producto ${product.id}:`, normalizedImages.length)
       } else {
         setImages([])
         setSelectedImage(null)

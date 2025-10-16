@@ -57,6 +57,8 @@ export default function AdminProductos() {
           category_id: it.category_id || null,
           created_at: it.created_at,
           updated_at: it.updated_at,
+          // ✅ Campo de imagen principal (Xano retorna ARRAY de objetos)
+          image: Array.isArray(it.image) && it.image.length > 0 ? it.image[0] : null,
           // Incluir las imágenes que vienen desde la relación de Xano
           // Xano puede usar guion bajo _ al inicio según la configuración del Addon
           imagen_producto_of_product: it._imagen_producto_of_product || it.imagen_producto_of_product || [],
@@ -89,19 +91,24 @@ export default function AdminProductos() {
     setShowModal(true)
   }
 
-  const handleSaveProduct = async (formData) => {
+  const handleSaveProduct = async (formData, imageFile = null) => {
     try {
       if (!isAdmin()) throw new Error('Solo administradores pueden modificar productos')
+      
       let result;
       if (editingProduct?.id) {
-        result = await productsService.update(editingProduct.id, formData)
+        // 🎯 ACTUALIZAR producto con imagen opcional usando la nueva función
+        result = await productsService.updateWithImage(editingProduct.id, formData, imageFile)
         setToast({ show: true, message: 'Producto actualizado exitosamente', type: 'success' })
       } else {
-        result = await productsService.create(formData)
+        // 🎯 CREAR producto con imagen opcional usando la nueva función
+        result = await productsService.createWithImage(formData, imageFile)
         setToast({ show: true, message: 'Producto creado exitosamente', type: 'success' })
       }
+      
       setShowModal(false)
-      // recargar lista
+      
+      // Recargar lista
       const res = await productsService.list({ page, limit })
       const list = Array.isArray(res) ? res : (res?.data || [])
       const mapped = list.map((it) => ({
@@ -118,13 +125,16 @@ export default function AdminProductos() {
         attributes: it.attributes || '',
         category_id: it.category_id || null,
         created_at: it.created_at,
-        updated_at: it.updated_at
+        updated_at: it.updated_at,
+        image: it.image || null, // ✅ El campo en Xano se llama 'image'
+        imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
       }))
       setItems(mapped)
-      return result; // Devolver el producto creado para que el modal pueda subir imágenes
+      
+      return result
     } catch (err) {
       setToast({ show: true, message: err.message || 'No se pudo guardar el producto', type: 'error' })
-      throw err; // Re-lanzar el error para que el modal lo maneje
+      throw err
     }
   }
 
