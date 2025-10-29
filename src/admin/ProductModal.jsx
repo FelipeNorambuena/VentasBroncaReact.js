@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { productImageService } from '../services/productImage'
 
 export default function ProductModal({ show, onClose, product = null, onSave }) {
@@ -19,7 +19,35 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
   })
   
   const [imagenes, setImagenes] = useState([])
-  const [imagenesExistentes, setImagenesExistentes] = useState(product?.imagenes || [])
+  const [imagenesExistentes, setImagenesExistentes] = useState([])
+
+  // Cargar los datos del producto cuando cambia
+  useEffect(() => {
+    if (product) {
+      setForm({
+        name: product.name || '',
+        slug: product.slug || '',
+        description: product.description || '',
+        brand: product.brand || '',
+        price: product.price || '',
+        compare_at_price: product.compare_at_price || '',
+        currency: product.currency || 'CLP',
+        is_active: product.is_active ?? true,
+        tags: product.tags ? (Array.isArray(product.tags) ? product.tags.join(',') : product.tags) : '',
+        attributes: product.attributes || '',
+        category_id: product.category_id || ''
+      })
+      setImagenesExistentes(product.imagenes || [])
+    } else {
+      setForm({
+        name: '', slug: '', description: '', brand: '', price: '', 
+        compare_at_price: '', currency: 'CLP', is_active: true, 
+        tags: '', attributes: '', category_id: ''
+      })
+      setImagenesExistentes([])
+    }
+    setImagenes([])
+  }, [product])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -30,7 +58,7 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     const newImages = files.map((file, index) => ({
       file,
       preview: URL.createObjectURL(file),
-      esPrincipal: imagenes.length === 0 && index === 0,
+      esPrincipal: imagenes.length === 0 && imagenesExistentes.length === 0 && index === 0,
       id: Date.now() + index
     }))
     setImagenes([...imagenes, ...newImages])
@@ -38,6 +66,17 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
 
   const removeImage = (id) => {
     setImagenes(imagenes.filter(img => img.id !== id))
+  }
+
+  const removeExistingImage = async (imagen) => {
+    if (!confirm('¿Eliminar esta imagen?')) return
+    try {
+      await productImageService.remove(imagen.id)
+      setImagenesExistentes(imagenesExistentes.filter(img => img.id !== imagen.id))
+    } catch (err) {
+      console.error('Error al eliminar imagen:', err)
+      alert('No se pudo eliminar la imagen')
+    }
   }
 
   const setAsPrincipal = (id) => {
@@ -54,27 +93,100 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     }
     
     try {
-      // Crear o actualizar producto
-      const created = await onSave(productData);
+      // 🎯 PASO 1: Guardar producto con la primera imagen
+      const imageFile = imagenes.length > 0 ? imagenes[0].file : null;
       
-      // Subir imágenes si hay y si el producto fue creado
-      if (imagenes.length > 0 && created?.id) {
-        for (let i = 0; i < imagenes.length; i++) {
+      if (imageFile) {
+        console.log(`📤 Se enviará imagen principal: ${imageFile.name}`);
+      } else {
+        console.log('ℹ️ No hay imagen para subir, solo se guardarán los datos');
+      }
+      
+      // Guardar el producto y obtener el resultado (incluye el ID)
+      const savedProduct = await onSave(productData, imageFile);
+      
+      console.log('✅ Producto guardado:', savedProduct);
+      
+      // 🎯 PASO 2: Si hay más de una imagen, actualizar el campo image con TODAS las imágenes
+      if (imagenes.length > 1 && savedProduct && savedProduct.id) {
+        console.log(`📤 Subiendo ${imagenes.length - 1} imagen(es) adicional(es) y actualizando campo image...`);
+        
+        // Array para almacenar TODAS las imágenes (incluyendo la primera)
+        const allImageObjects = [];
+        
+        // La primera imagen ya está en savedProduct.image
+        if (savedProduct.image && Array.isArray(savedProduct.image)) {
+          allImageObjects.push(...savedProduct.image);
+          console.log(`✅ Primera imagen ya en el producto (array):`, savedProduct.image);
+        } else if (savedProduct.image) {
+          allImageObjects.push(savedProduct.image);
+          console.log(`✅ Primera imagen ya en el producto (objeto):`, savedProduct.image);
+        }
+        
+        // Subir las imágenes restantes
+        for (let i = 1; i < imagenes.length; i++) {
           const img = imagenes[i];
-          const formImg = new FormData();
-          formImg.append('product_id', created.id);
-          formImg.append('url', img.file); // Xano espera 'url' como nombre del archivo
-          formImg.append('alt', img.file.name);
-          formImg.append('sort_order', i);
+          console.log(`📤 Subiendo imagen adicional ${i}: ${img.file.name}`);
           
-          console.log('Subiendo imagen:', {
-            product_id: created.id,
-            filename: img.file.name,
-            size: img.file.size,
-            type: img.file.type
-          }); // DEBUG
+          try {
+            // Subir la imagen al servidor
+            const formUpload = new FormData();
+            formUpload.append('content', img.file);
+            
+            const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/upload/image`;
+            const uploadResponse = await fetch(uploadUrl, {
+              method: 'POST',
+              body: formUpload
+            });
+            
+            if (!uploadResponse.ok) {
+              throw new Error(`Error subiendo imagen: ${uploadResponse.status}`);
+            }
+            
+            const uploadData = await uploadResponse.json();
+            console.log(`📥 Respuesta upload imagen ${i}:`, uploadData);
+            
+            // Agregar el OBJETO COMPLETO de la imagen al array
+            if (Array.isArray(uploadData) && uploadData.length > 0) {
+              allImageObjects.push(uploadData[0]);
+              console.log(`✅ Imagen adicional ${i} agregada al array`);
+            } else if (uploadData) {
+              allImageObjects.push(uploadData);
+              console.log(`✅ Imagen adicional ${i} agregada al array`);
+            }
+            
+          } catch (uploadError) {
+            console.error(`❌ Error subiendo imagen adicional ${i}:`, uploadError);
+            alert(`Error al subir imagen ${img.file.name}: ${uploadError.message}`);
+          }
+        }
+        
+        // Actualizar el producto con el array completo de imágenes
+        console.log(`🔄 Actualizando producto con ${allImageObjects.length} imágenes...`);
+        console.log('📦 Array completo de imágenes:', allImageObjects);
+        
+        try {
+          const updateUrl = `${import.meta.env.VITE_API_BASE_URL}/product/${savedProduct.id}`;
+          const updateResponse = await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              image: allImageObjects
+            })
+          });
           
-          await productImageService.create(formImg);
+          if (!updateResponse.ok) {
+            throw new Error(`Error actualizando producto: ${updateResponse.status}`);
+          }
+          
+          const updatedProduct = await updateResponse.json();
+          console.log('✅ Producto actualizado con todas las imágenes:', updatedProduct);
+          
+        } catch (updateError) {
+          console.error('❌ Error al actualizar producto con array de imágenes:', updateError);
+          alert(`Error al actualizar producto con imágenes: ${updateError.message}`);
         }
       }
       
@@ -155,6 +267,57 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
                 </div>
               </div>
 
+              {/* Mostrar imágenes existentes */}
+              {imagenesExistentes.length > 0 && (
+                <div className="mb-4">
+                  <h6>Imágenes Actuales</h6>
+                  <div
+                    className="row g-2"
+                    style={{
+                      maxHeight: 220,
+                      overflowY: 'auto',
+                      border: '1px solid #eee',
+                      borderRadius: 8,
+                      padding: 8,
+                      background: '#fff8e1'
+                    }}
+                  >
+                    {imagenesExistentes.map(img => (
+                      <div key={img.id} className="col-md-3 col-6">
+                        <div className={`card ${img.es_principal ? 'border-warning' : ''}`}>
+                          <img 
+                            src={img.imagen?.url || img.url || '/placeholder.jpg'} 
+                            className="card-img-top" 
+                            alt={img.alt_text || 'Imagen del producto'} 
+                            style={{ height: 120, objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.target.src = '/placeholder.jpg'
+                              console.error('Error cargando imagen:', img)
+                            }}
+                          />
+                          <div className="card-body p-2">
+                            <div className="d-flex gap-1">
+                              {img.es_principal && (
+                                <span className="badge bg-warning text-dark" style={{ fontSize: '0.7rem' }}>
+                                  <i className="fas fa-star"></i> Principal
+                                </span>
+                              )}
+                              <button 
+                                type="button" 
+                                className="btn btn-danger btn-sm ms-auto" 
+                                onClick={() => removeExistingImage(img)}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Subir nuevas imágenes */}
               <div className="mb-4">
                 <label className="form-label">Agregar Imágenes</label>
@@ -185,12 +348,26 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
                   >
                     {imagenes.map(img => (
                       <div key={img.id} className="col-md-3 col-6">
-                        <div className="card">
+                        <div className={`card ${img.esPrincipal ? 'border-primary' : ''}`}>
                           <img src={img.preview} className="card-img-top" alt="Preview" style={{ height: 120, objectFit: 'cover' }} />
                           <div className="card-body p-2">
-                            <button type="button" className="btn btn-danger btn-sm w-100" onClick={() => removeImage(img.id)}>
-                              <i className="fas fa-trash"></i> Eliminar
-                            </button>
+                            <div className="d-flex gap-1">
+                              <button 
+                                type="button" 
+                                className={`btn btn-sm ${img.esPrincipal ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setAsPrincipal(img.id)}
+                                title="Marcar como principal"
+                              >
+                                <i className="fas fa-star"></i>
+                              </button>
+                              <button 
+                                type="button" 
+                                className="btn btn-danger btn-sm flex-grow-1" 
+                                onClick={() => removeImage(img.id)}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>

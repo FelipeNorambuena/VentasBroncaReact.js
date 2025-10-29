@@ -7,14 +7,14 @@ export const productImageService = {
       if (v !== undefined && v !== null && v !== '') query.append(k, v)
     }
     const qs = query.toString()
-    return http.get(`/product_image${qs ? `?${qs}` : ''}`)
+    return http.get(`/imagen_producto${qs ? `?${qs}` : ''}`)
   },
   async create(data) {
-    // data: { product_id, file, alt, sort_order }
-    const isForm = typeof FormData !== 'undefined' && data instanceof FormData
-    return http.post('/product_image', data, { auth: true, headers: isForm ? {} : undefined })
+    // data: FormData con { id_producto, imagen (URL de texto), alt_text, orden, es_principal }
+    // Enviar directamente como FormData
+    return http.post('/imagen_producto', data, { auth: true })
   },
   async remove(id) {
-    return http.del(`/product_image/${encodeURIComponent(id)}`, { auth: true })
+    return http.del(`/imagen_producto/${encodeURIComponent(id)}`, { auth: true })
   },
 }

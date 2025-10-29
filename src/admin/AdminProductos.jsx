@@ -3,6 +3,7 @@ import ProductModal from './ProductModal'
 import ProductPreviewModal from './ProductPreviewModal'
 import Toast from '../components/Toast'
 import { productsService } from '../services/products'
+import { productImageService } from '../services/productImage'
 import { useAuth } from '../context/AuthContext'
 
 export default function AdminProductos() {
@@ -37,6 +38,10 @@ export default function AdminProductos() {
       try {
         const res = await productsService.list({ page, limit })
         const list = Array.isArray(res) ? res : (res?.data || [])
+        
+        console.log('📦 Productos recibidos de Xano:', list) // DEBUG: Ver estructura completa
+        console.log('📦 Primer producto con detalle:', list[0]) // DEBUG: Ver un producto completo
+        
         const mapped = list.map((it) => ({
           id: it.id,
           name: it.name || '',
@@ -51,8 +56,17 @@ export default function AdminProductos() {
           attributes: it.attributes || '',
           category_id: it.category_id || null,
           created_at: it.created_at,
-          updated_at: it.updated_at
+          updated_at: it.updated_at,
+          // ✅ Campo de imagen principal (Xano retorna ARRAY de objetos)
+          image: Array.isArray(it.image) && it.image.length > 0 ? it.image[0] : null,
+          // Incluir las imágenes que vienen desde la relación de Xano
+          // Xano puede usar guion bajo _ al inicio según la configuración del Addon
+          imagen_producto_of_product: it._imagen_producto_of_product || it.imagen_producto_of_product || [],
+          imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
         }))
+        
+        console.log('📦 Productos mapeados:', mapped) // DEBUG: Ver si las imágenes están incluidas
+        
         if (mounted) setItems(mapped)
       } catch (err) {
         console.error('No se pudo cargar productos', err)
@@ -70,24 +84,31 @@ export default function AdminProductos() {
     setShowModal(true)
   }
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = async (product) => {
+    // Las imágenes ya vienen con el producto desde la relación de Xano
+    // No es necesario cargarlas por separado
     setEditingProduct(product)
     setShowModal(true)
   }
 
-  const handleSaveProduct = async (formData) => {
+  const handleSaveProduct = async (formData, imageFile = null) => {
     try {
       if (!isAdmin()) throw new Error('Solo administradores pueden modificar productos')
+      
       let result;
       if (editingProduct?.id) {
-        result = await productsService.update(editingProduct.id, formData)
+        // 🎯 ACTUALIZAR producto con imagen opcional usando la nueva función
+        result = await productsService.updateWithImage(editingProduct.id, formData, imageFile)
         setToast({ show: true, message: 'Producto actualizado exitosamente', type: 'success' })
       } else {
-        result = await productsService.create(formData)
+        // 🎯 CREAR producto con imagen opcional usando la nueva función
+        result = await productsService.createWithImage(formData, imageFile)
         setToast({ show: true, message: 'Producto creado exitosamente', type: 'success' })
       }
+      
       setShowModal(false)
-      // recargar lista
+      
+      // Recargar lista
       const res = await productsService.list({ page, limit })
       const list = Array.isArray(res) ? res : (res?.data || [])
       const mapped = list.map((it) => ({
@@ -104,13 +125,16 @@ export default function AdminProductos() {
         attributes: it.attributes || '',
         category_id: it.category_id || null,
         created_at: it.created_at,
-        updated_at: it.updated_at
+        updated_at: it.updated_at,
+        image: it.image || null, // ✅ El campo en Xano se llama 'image'
+        imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
       }))
       setItems(mapped)
-      return result; // Devolver el producto creado para que el modal pueda subir imágenes
+      
+      return result
     } catch (err) {
       setToast({ show: true, message: err.message || 'No se pudo guardar el producto', type: 'error' })
-      throw err; // Re-lanzar el error para que el modal lo maneje
+      throw err
     }
   }
 

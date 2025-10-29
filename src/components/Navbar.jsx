@@ -9,6 +9,7 @@ export default function Navbar() {
   const { totalItems } = useContext(CartContext)
   const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
   const path = typeof window !== 'undefined' ? window.location.pathname : '/'
 
@@ -38,6 +39,16 @@ export default function Navbar() {
     setDropdownOpen(false)
     // TODO: Navegar a pedidos cuando esté implementado
     console.log('Ir a mis pedidos - pendiente de implementar')
+  }
+
+  // Función para manejar la búsqueda
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchTerm.trim()) {
+      // Redirigir a la página de productos con el término de búsqueda
+      navigate(`/productos?search=${encodeURIComponent(searchTerm.trim())}`)
+      setSearchTerm('') // Limpiar el campo de búsqueda
+    }
   }
 
   return (
@@ -91,9 +102,16 @@ export default function Navbar() {
               </li>
             </ul>
 
-            <form className="d-flex ms-lg-3 me-lg-3 my-2 my-lg-0" role="search" aria-label="Búsqueda de productos">
+            <form className="d-flex ms-lg-3 me-lg-3 my-2 my-lg-0" role="search" aria-label="Búsqueda de productos" onSubmit={handleSearch}>
               <div className="input-group">
-                <input className="form-control" type="search" placeholder="Buscar productos..." aria-label="Buscar productos" required />
+                <input 
+                  className="form-control" 
+                  type="search" 
+                  placeholder="Buscar productos..." 
+                  aria-label="Buscar productos" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
                 <button className="btn btn-outline-success" type="submit" aria-label="Buscar">Buscar</button>
               </div>
             </form>
