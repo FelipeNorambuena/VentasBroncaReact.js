@@ -1,6 +1,9 @@
 import React, { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 import slideImg from '../assets/images/5803438.jpg'
+import cazaImg from '../assets/images/caza.jpg'
+import pescaImg from '../assets/images/pesca.jpg'
+import rapalaImg from '../assets/images/RapalaLogo.jpg'
 import './hero.css'
 import { Link } from 'react-router-dom'
 
@@ -23,10 +26,10 @@ export default function Hero() {
 
           <div className="carousel-inner">
             <div className="carousel-item active">
-              <img src={slideImg} className="d-block w-100 carousel-image" alt="Productos tácticos de alta calidad" />
+              <img src={cazaImg} className="d-block w-100 carousel-image" alt="Productos para caza" />
               <div className="carousel-caption d-none d-md-block">
-                <h1 className="display-4 fw-bold">Productos Tácticos de Calidad</h1>
-                <p className="lead">Encuentra el mejor equipamiento militar y táctico para profesionales</p>
+                <h1 className="display-4 fw-bold">Equipamiento para Caza</h1>
+                <p className="lead">Calidad y resistencia para tus jornadas de caza</p>
                 <Link to="/productos" className="btn btn-primary btn-lg">Ver Productos</Link>
                 <button className="btn btn-outline-light btn-lg ms-2" onClick={addSample}>
                   Añadir muestra
@@ -35,19 +38,19 @@ export default function Hero() {
             </div>
 
             <div className="carousel-item">
-              <img src={slideImg} className="d-block w-100 carousel-image" alt="Equipamiento para camping y actividades al aire libre" />
+              <img src={pescaImg} className="d-block w-100 carousel-image" alt="Equipamiento para pesca" />
               <div className="carousel-caption d-none d-md-block">
-                <h2 className="display-4 fw-bold">Equipamiento para Camping</h2>
-                <p className="lead">Todo lo que necesitas para tus aventuras al aire libre</p>
+                <h2 className="display-4 fw-bold">Equipamiento para Pesca</h2>
+                <p className="lead">Accesorios y herramientas para una pesca eficiente</p>
                 <Link to="/productos" className="btn btn-success btn-lg">Explorar</Link>
               </div>
             </div>
 
             <div className="carousel-item">
-              <img src={slideImg} className="d-block w-100 carousel-image" alt="Accesorios y herramientas especializadas" />
+              <img src={rapalaImg} className="d-block w-100 carousel-image" alt="Rapala - marca de pesca" />
               <div className="carousel-caption d-none d-md-block">
-                <h2 className="display-4 fw-bold">Accesorios Especializados</h2>
-                <p className="lead">Herramientas y accesorios de la más alta calidad</p>
+                <h2 className="display-4 fw-bold">Marcas y Accesorios</h2>
+                <p className="lead">Selección de marcas reconocidas y accesorios especializados</p>
                 <Link to="/productos" className="btn btn-warning btn-lg">Descubrir</Link>
               </div>
             </div>
