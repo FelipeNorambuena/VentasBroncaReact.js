@@ -47,7 +47,7 @@ export default function Footer() {
                 <img src={whatsappIcon} alt="WhatsApp" style={{ height: 32, width: 32 }} />
               </a>
             </div>
-            <p className="text-light mb-0">+56 9 7416 1396</p>
+            <p className="text-light mb-0"></p>
           </div>
         </div>
 
