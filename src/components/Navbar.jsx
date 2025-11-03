@@ -92,7 +92,7 @@ export default function Navbar() {
                 <Link className={`nav-link ${isActive('/nosotros') ? 'active' : ''}`} to="/nosotros">Nosotros</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${isActive('/blogs') ? 'active' : ''}`} to="/blogs">Blogs</Link>
+                <Link className={`nav-link ${isActive('/blog') ? 'active' : ''}`} to="/blog">Blog</Link>
               </li>
               <li className="nav-item">
                 <Link className={`nav-link ${isActive('/contacto') ? 'active' : ''}`} to="/contacto">Contacto</Link>

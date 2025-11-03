@@ -10,8 +10,6 @@ import CartModal from './components/CartModal'
 import ProductsSection from './components/ProductsSection'
 import About from './components/About'
 import Contact from './components/Contact'
-import BlogList from './components/BlogList'
-import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
 import AdminInstructions from './components/AdminInstructions'
@@ -19,6 +17,8 @@ import Notification from './components/Notification'
 import ConfirmModal from './components/ConfirmModal'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Productos from './pages/Productos'
+import BlogList from './pages/BlogList'
+import BlogPost from './pages/BlogPost'
 import AdminLayout from './admin/AdminLayout'
 import AdminDashboard from './admin/AdminDashboard'
 import AdminUsuarios from './admin/AdminUsuarios'
@@ -65,8 +65,8 @@ function AppContent() {
         <Route path="/registro" element={<Register />} />
         <Route path="/admin-help" element={<AdminInstructions />} />
         <Route path="/nosotros" element={<About />} />
-        <Route path="/blogs" element={<BlogList />} />
-        <Route path="/blogs/:id" element={<BlogPost />} />
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/contacto" element={<Contact />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/admin" element={<AdminLayout />}>
