@@ -34,8 +34,11 @@ export default function ProductsSection() {
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const searchTerm = searchParams.get('search') || ''
+  const categoryFilter = searchParams.get('category') || ''
+  const [categories, setCategories] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState(categoryFilter)
 
   useEffect(() => {
     let mounted = true
@@ -130,9 +133,14 @@ export default function ProductsSection() {
         console.log('✅ Total productos mapeados:', productsWithImages.length)
         console.log('✅ Productos finales:', productsWithImages)
         
+        // Extraer categorías únicas
+        const uniqueCategories = [...new Set(productsWithImages.map(p => p.category).filter(Boolean))]
+        console.log('📂 Categorías encontradas:', uniqueCategories)
+        
         if (mounted) {
           setProducts(productsWithImages)
           setFilteredProducts(productsWithImages) // Inicialmente mostrar todos
+          setCategories(uniqueCategories.sort())
         }
       } catch (err) {
         console.error('Error cargando productos:', err)
@@ -140,6 +148,7 @@ export default function ProductsSection() {
           // Usar productos de ejemplo en caso de error
           setProducts(SAMPLE_PRODUCTS)
           setFilteredProducts(SAMPLE_PRODUCTS)
+          setCategories([...new Set(SAMPLE_PRODUCTS.map(p => p.category).filter(Boolean))].sort())
         }
       } finally {
         if (mounted) setLoading(false)
@@ -149,15 +158,24 @@ export default function ProductsSection() {
     return () => { mounted = false }
   }, [])
 
-  // Efecto para filtrar productos cuando cambie el término de búsqueda
+  // Efecto para filtrar productos cuando cambie el término de búsqueda o categoría
   useEffect(() => {
-    if (!searchTerm) {
-      // Si no hay búsqueda, mostrar todos los productos
-      setFilteredProducts(products)
-    } else {
-      // Filtrar productos por nombre, descripción o categoría
+    let filtered = [...products]
+    
+    // Filtrar por categoría si está seleccionada
+    if (categoryFilter) {
+      filtered = filtered.filter(product => {
+        const productCategory = (product.category || '').toLowerCase()
+        const filterCategory = categoryFilter.toLowerCase()
+        return productCategory.includes(filterCategory) || filterCategory.includes(productCategory)
+      })
+      console.log(`📂 Filtrando por categoría "${categoryFilter}": ${filtered.length} productos`)
+    }
+    
+    // Filtrar por término de búsqueda si existe
+    if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      const filtered = products.filter(product => {
+      filtered = filtered.filter(product => {
         const name = (product.name || '').toLowerCase()
         const description = (product.description || '').toLowerCase()
         const category = (product.category || '').toLowerCase()
@@ -166,11 +184,24 @@ export default function ProductsSection() {
                description.includes(term) || 
                category.includes(term)
       })
-      
-      console.log(`🔍 Buscando "${searchTerm}": ${filtered.length} resultados de ${products.length} productos`)
-      setFilteredProducts(filtered)
+      console.log(`🔍 Buscando "${searchTerm}": ${filtered.length} resultados`)
     }
-  }, [searchTerm, products])
+    
+    setFilteredProducts(filtered)
+    setSelectedCategory(categoryFilter)
+  }, [searchTerm, categoryFilter, products])
+  
+  // Función para cambiar categoría
+  const handleCategoryChange = (category) => {
+    if (category === '') {
+      // Eliminar filtro de categoría
+      searchParams.delete('category')
+    } else {
+      // Establecer nueva categoría
+      searchParams.set('category', category)
+    }
+    setSearchParams(searchParams)
+  }
 
   const handleAdd = (product) => addItem(product)
   const handleOpen = (product) => setLightboxProduct(product)
@@ -181,17 +212,49 @@ export default function ProductsSection() {
         <div className="row mb-4">
           <div className="col-12 text-center">
             <h1 className="display-6 fw-bold mb-2 products-section-title">
-              {searchTerm ? `Resultados de búsqueda: "${searchTerm}"` : 'Catálogo de Productos'}
+              {searchTerm 
+                ? `Resultados de búsqueda: "${searchTerm}"` 
+                : categoryFilter 
+                  ? `Categoría: ${categoryFilter}` 
+                  : 'Catálogo de Productos'}
             </h1>
             <p className="text-muted products-section-desc">
               {searchTerm 
                 ? `${filteredProducts.length} producto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`
-                : 'Explora nuestra selección de productos tácticos, militares, camping y más'
+                : categoryFilter
+                  ? `${filteredProducts.length} producto${filteredProducts.length !== 1 ? 's' : ''} en esta categoría`
+                  : 'Explora nuestra selección de productos tácticos, militares, camping y más'
               }
             </p>
             <hr className="mx-auto" style={{ width: 100, height: 3 }} />
           </div>
         </div>
+
+        {/* Filtro de categorías */}
+        {!searchTerm && categories.length > 0 && (
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="d-flex flex-wrap justify-content-center gap-2 align-items-center">
+                <span className="fw-bold me-2">Filtrar por:</span>
+                <button 
+                  className={`btn btn-sm ${!selectedCategory ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleCategoryChange('')}
+                >
+                  Todas las categorías
+                </button>
+                {categories.map(cat => (
+                  <button 
+                    key={cat}
+                    className={`btn btn-sm ${selectedCategory === cat ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleCategoryChange(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-5">
@@ -204,9 +267,23 @@ export default function ProductsSection() {
             <p className="text-muted">
               {searchTerm 
                 ? `No hay productos que coincidan con "${searchTerm}". Intenta con otros términos.`
-                : 'No hay productos disponibles en este momento.'
+                : categoryFilter
+                  ? `No hay productos disponibles en la categoría "${categoryFilter}".`
+                  : 'No hay productos disponibles en este momento.'
               }
             </p>
+            {(searchTerm || categoryFilter) && (
+              <button 
+                className="btn btn-primary mt-3"
+                onClick={() => {
+                  searchParams.delete('search')
+                  searchParams.delete('category')
+                  setSearchParams(searchParams)
+                }}
+              >
+                Ver todos los productos
+              </button>
+            )}
           </div>
         ) : (
           <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" id="catalog-grid" aria-live="polite">

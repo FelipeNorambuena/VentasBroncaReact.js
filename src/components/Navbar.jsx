@@ -9,9 +9,10 @@ export default function Navbar() {
   const { totalItems } = useContext(CartContext)
   const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const path = typeof window !== 'undefined' ? window.location.pathname : ''
 
   const isActive = (p) => {
     if (!p) return false
@@ -51,6 +52,31 @@ export default function Navbar() {
     }
   }
 
+  // Función para manejar el click en categoría
+  const handleCategoryClick = () => {
+    // Cerrar el dropdown manualmente
+    setCategoriesDropdownOpen(false)
+    // Cerrar el menú móvil si está abierto
+    const navbarCollapse = document.getElementById('navbarMain')
+    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+      const bsCollapse = window.bootstrap?.Collapse?.getInstance(navbarCollapse)
+      if (bsCollapse) {
+        bsCollapse.hide()
+      }
+    }
+  }
+
+  // Cerrar dropdown al hacer clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoriesDropdownOpen && !event.target.closest('.dropdown')) {
+        setCategoriesDropdownOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [categoriesDropdownOpen])
+
   return (
     <header>
   <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm navbar-custom" role="navigation" aria-label="Navegación principal">
@@ -72,20 +98,31 @@ export default function Navbar() {
               <li className="nav-item">
                 <Link className={`nav-link ${isActive('/productos') ? 'active' : ''}`} to="/productos">Productos</Link>
               </li>
-              <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categorías</a>
-                <ul className="dropdown-menu shadow">
-                  <li><a className="dropdown-item" href="#">Militares</a></li>
-                  <li><a className="dropdown-item" href="#">Mochilas y bolsos</a></li>
-                  <li><a className="dropdown-item" href="#">Camping</a></li>
-                  <li><a className="dropdown-item" href="#">Jockey</a></li>
-                  <li><a className="dropdown-item" href="#">Caza y pesca</a></li>
-                  <li><a className="dropdown-item" href="#">Iluminación</a></li>
-                  <li><a className="dropdown-item" href="#">Lentes</a></li>
-                  <li><a className="dropdown-item" href="#">Botas Militares</a></li>
-                  <li><a className="dropdown-item" href="#">Accesorios</a></li>
+              <li className={`nav-item dropdown ${categoriesDropdownOpen ? 'show' : ''}`}>
+                <a 
+                  className="nav-link dropdown-toggle" 
+                  href="#" 
+                  role="button" 
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCategoriesDropdownOpen(!categoriesDropdownOpen)
+                  }}
+                  aria-expanded={categoriesDropdownOpen}
+                >
+                  Categorías
+                </a>
+                <ul className={`dropdown-menu shadow ${categoriesDropdownOpen ? 'show' : ''}`}>
+                  <li><Link className="dropdown-item" to="/productos?category=Militares" onClick={handleCategoryClick}>Militares</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Mochilas y bolsos" onClick={handleCategoryClick}>Mochilas y bolsos</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Camping" onClick={handleCategoryClick}>Camping</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Jockey" onClick={handleCategoryClick}>Jockey</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Caza y pesca" onClick={handleCategoryClick}>Caza y pesca</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Iluminación" onClick={handleCategoryClick}>Iluminación</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Lentes" onClick={handleCategoryClick}>Lentes</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Botas Militares" onClick={handleCategoryClick}>Botas Militares</Link></li>
+                  <li><Link className="dropdown-item" to="/productos?category=Accesorios" onClick={handleCategoryClick}>Accesorios</Link></li>
                   <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="#">Ver más</a></li>
+                  <li><Link className="dropdown-item" to="/productos" onClick={handleCategoryClick}>Ver todos</Link></li>
                 </ul>
               </li>
               <li className="nav-item">
