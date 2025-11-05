@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import logo from '../assets/images/logo.jpg'
 import { useNavigate } from 'react-router-dom'
-import { authService } from '../services/auth'
-import { setAuthToken } from '../utils/authToken'
+import { clientsService } from '../services/clients'
 
 // Lista de ejemplo de regiones y comunas (puedes reemplazar por API real)
 const REGIONES = [
-  { id: 'rm', name: 'Región Metropolitana', comunas: ['Santiago', 'Providencia', 'Las Condes'] },
-  { id: 'biobio', name: 'Biobío', comunas: ['Concepción', 'Talcahuano', 'Chiguayante'] },
+  { id: 'rm', name: 'Región Metropolitana', comunas: ['Santiago', 'Providencia', 'Las Condes', 'Maipú', 'La Florida', 'Puente Alto'] },
+  { id: 'valparaiso', name: 'Valparaíso', comunas: ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana'] },
+  { id: 'biobio', name: 'Biobío', comunas: ['Concepción', 'Talcahuano', 'Chiguayante', 'Los Ángeles'] },
+  { id: 'araucania', name: 'La Araucanía', comunas: ['Temuco', 'Padre Las Casas', 'Villarrica', 'Pucón'] },
+  { id: 'loslagos', name: 'Los Lagos', comunas: ['Puerto Montt', 'Osorno', 'Castro', 'Puerto Varas'] },
 ]
-
-// Se reemplaza mockRegister por petición real a Xano en handleSubmit
 
 export default function Register() {
   const [form, setForm] = useState({ nombre: '', correo: '', confirmarCorreo: '', password: '', confirmarPassword: '', telefono: '', region: '', comuna: '' })
@@ -32,13 +32,15 @@ export default function Register() {
 
   function validate() {
     const e = {}
-    if (!form.nombre || form.nombre.length < 3) e.nombre = 'Ingrese su nombre completo.'
+    if (!form.nombre || form.nombre.length < 3) e.nombre = 'Ingrese su nombre completo (mínimo 3 caracteres).'
     if (!form.correo || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.correo)) e.correo = 'Ingrese un correo válido.'
     if (form.correo !== form.confirmarCorreo) e.confirmarCorreo = 'Los correos no coinciden.'
-    if (!form.password || form.password.length < 8) e.password = 'La contraseña debe tener al menos 8 caracteres.'
-    // simple policy: mayúscula + minúscula + número
-    if (!/[A-Z]/.test(form.password) || !/[a-z]/.test(form.password) || !/[0-9]/.test(form.password)) e.password = 'La contraseña debe incluir mayúscula, minúscula y número.'
+    if (!form.password || form.password.length < 6) e.password = 'La contraseña debe tener al menos 6 caracteres.'
     if (form.password !== form.confirmarPassword) e.confirmarPassword = 'Las contraseñas no coinciden.'
+    if (!form.telefono) e.telefono = 'El teléfono es obligatorio.'
+    if (form.telefono && !/^(\+?56)?[2-9]\d{8}$/.test(form.telefono.replace(/\s/g, ''))) {
+      e.telefono = 'Ingrese un teléfono válido de Chile.'
+    }
     if (!form.region) e.region = 'Seleccione una región.'
     if (!form.comuna) e.comuna = 'Seleccione una comuna.'
     setErrors(e)
@@ -55,27 +57,63 @@ export default function Register() {
     setMessage(null)
     if (!validate()) return
     setLoading(true)
-    const payload = { email: form.correo, password: form.password, name: form.nombre, phone: form.telefono }
-    authService.register(payload)
+    
+    // Preparar payload para la tabla de clientes (estructura exacta de Xano)
+    const regionNombre = REGIONES.find(r => r.id === form.region)?.name || form.region
+    
+    const payload = {
+      full_name: form.nombre.trim(),
+      email: form.correo.trim().toLowerCase(),
+      password: form.password,
+      phone: form.telefono.trim(),
+      region: regionNombre,
+      commune: form.comuna
+    }
+    
+    console.log('📝 Registrando nuevo cliente en tabla /client:', payload)
+    
+    clientsService.create(payload)
       .then((res) => {
         setLoading(false)
-        if (res?.token || res?.authToken || res?.data?.token) {
-          setAuthToken(res.token || res.authToken || res.data.token)
-        }
-        if (res) {
-          setMessage({ type: 'success', text: 'Registro exitoso. Redirigiendo al login...' })
-          setTimeout(() => {
-            navigate('/login', { replace: true })
-          }, 700)
-        } else {
-          setMessage({ type: 'danger', text: 'Error al registrar.' })
-        }
+        console.log('✅ Cliente registrado exitosamente:', res)
+        setMessage({ 
+          type: 'success', 
+          text: '¡Registro exitoso! Tu cuenta ha sido creada. Redirigiendo al login...' 
+        })
+        
+        // Limpiar formulario
+        setForm({ 
+          nombre: '', 
+          correo: '', 
+          confirmarCorreo: '', 
+          password: '', 
+          confirmarPassword: '', 
+          telefono: '', 
+          region: '', 
+          comuna: '' 
+        })
+        setComunas([])
+        setErrors({})
+        
+        // Redirigir al login después de 2 segundos
+        setTimeout(() => {
+          navigate('/login', { replace: true })
+        }, 2000)
       })
       .catch((err) => {
         setLoading(false)
-        console.error('Error en registro:', err)
-        const msg = err?.message || 'Error de red. Intente nuevamente.'
-        setMessage({ type: 'danger', text: msg })
+        console.error('❌ Error al registrar cliente:', err)
+        
+        // Mensajes de error más específicos
+        let errorMsg = 'Error al registrar. Intente nuevamente.'
+        
+        if (err.message?.includes('duplicate') || err.message?.includes('correo')) {
+          errorMsg = 'Este correo ya está registrado. Intenta con otro correo o inicia sesión.'
+        } else if (err.message) {
+          errorMsg = err.message
+        }
+        
+        setMessage({ type: 'danger', text: errorMsg })
       })
   }
 
@@ -109,18 +147,20 @@ export default function Register() {
                   </div>
                   <div className="mb-3">
                     <label htmlFor="password" className="form-label">Contraseña</label>
-                    <input type="password" className={`form-control ${errors.password ? 'is-invalid' : ''}`} id="password" name="password" required minLength={8} placeholder="Mínimo 8 caracteres" value={form.password} onChange={handleChange} />
+                    <input type="password" className={`form-control ${errors.password ? 'is-invalid' : ''}`} id="password" name="password" required minLength={6} placeholder="Mínimo 6 caracteres" value={form.password} onChange={handleChange} />
                     <div className="invalid-feedback">{errors.password}</div>
+                    <small className="text-muted">Mínimo 6 caracteres</small>
                   </div>
                   <div className="mb-3">
                     <label htmlFor="confirmarPassword" className="form-label">Confirmar contraseña</label>
-                    <input type="password" className={`form-control ${errors.confirmarPassword ? 'is-invalid' : ''}`} id="confirmarPassword" name="confirmarPassword" required minLength={8} value={form.confirmarPassword} onChange={handleChange} />
+                    <input type="password" className={`form-control ${errors.confirmarPassword ? 'is-invalid' : ''}`} id="confirmarPassword" name="confirmarPassword" required minLength={6} value={form.confirmarPassword} onChange={handleChange} />
                     <div className="invalid-feedback">{errors.confirmarPassword}</div>
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="telefono" className="form-label">Teléfono (opcional)</label>
-                    <input type="tel" className="form-control" id="telefono" name="telefono" pattern="^(\+?56)?[2-9]\d{8}$" placeholder="Ej: +56912345678" value={form.telefono} onChange={handleChange} />
-                    <div className="invalid-feedback">Ingrese un teléfono válido en Chile.</div>
+                    <label htmlFor="telefono" className="form-label">Teléfono *</label>
+                    <input type="tel" className={`form-control ${errors.telefono ? 'is-invalid' : ''}`} id="telefono" name="telefono" required pattern="^(\+?56)?[2-9]\d{8}$" placeholder="Ej: +56912345678" value={form.telefono} onChange={handleChange} />
+                    <div className="invalid-feedback">{errors.telefono || 'Ingrese un teléfono válido en Chile.'}</div>
+                    <small className="text-muted">Formato: +56912345678 o 912345678</small>
                   </div>
                   <div className="mb-3">
                     <label htmlFor="region" className="form-label">Región</label>

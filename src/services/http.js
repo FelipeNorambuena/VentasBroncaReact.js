@@ -66,3 +66,10 @@ export const http = {
   patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
 }
+
+// Exportar también las funciones individuales para importación directa
+export const get = http.get
+export const post = http.post
+export const patch = http.patch
+export const del = http.del
+
