@@ -1,5 +1,4 @@
-import React, { useContext } from 'react'
-import { CartContext } from '../context/CartContext'
+import React from 'react'
 import slideImg from '../assets/images/5803438.jpg'
 import cazaImg from '../assets/images/caza.jpg'
 import pescaImg from '../assets/images/pesca.jpg'
@@ -8,12 +7,6 @@ import './hero.css'
 import { Link } from 'react-router-dom'
 
 export default function Hero() {
-  const { addItem } = useContext(CartContext)
-
-  const addSample = () => {
-    addItem({ id: 'sample-1', name: 'Producto de muestra', price: 9.99, quantity: 1 })
-  }
-
   return (
     <main className="main-content" tabIndex={-1}>
       <section className="hero-section" aria-label="Productos destacados">
@@ -31,9 +24,6 @@ export default function Hero() {
                 <h1 className="display-4 fw-bold">Equipamiento para Caza</h1>
                 <p className="lead">Calidad y resistencia para tus jornadas de caza</p>
                 <Link to="/productos" className="btn btn-primary btn-lg">Ver Productos</Link>
-                <button className="btn btn-outline-light btn-lg ms-2" onClick={addSample}>
-                  Añadir muestra
-                </button>
               </div>
             </div>
 

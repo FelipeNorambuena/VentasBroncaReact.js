@@ -58,7 +58,7 @@ export default function Footer() {
             <p className="text-light mb-0">&copy; 2025 VentasBronca. Todos los derechos reservados.</p>
           </div>
           <div className="col-md-6 text-md-end">
-            <p className="text-light mb-0">Desarrollado con <i className="fas fa-heart text-danger"></i> para profesionales</p>
+            <p className="text-light mb-0">@ 2025 VentasBronca. Todos los derechos reservados.</p>
           </div>
         </div>
       </div>
