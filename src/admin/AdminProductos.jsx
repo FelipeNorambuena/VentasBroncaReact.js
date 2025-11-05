@@ -25,8 +25,9 @@ export default function AdminProductos() {
     const q = search.toLowerCase()
     return items.filter(p =>
       (p.name || '').toLowerCase().includes(q) ||
-      (p.slug || '').toLowerCase().includes(q) ||
-      (p.brand || '').toLowerCase().includes(q)
+      (p.brand || '').toLowerCase().includes(q) ||
+      String(p.price || '').includes(q) ||
+      String(p.slug || '').includes(q)
     )
   }, [items, search])
 
@@ -57,8 +58,9 @@ export default function AdminProductos() {
           category_id: it.category_id || null,
           created_at: it.created_at,
           updated_at: it.updated_at,
-          // ✅ Campo de imagen principal (Xano retorna ARRAY de objetos)
-          image: Array.isArray(it.image) && it.image.length > 0 ? it.image[0] : null,
+          // ✅ Imagen principal: Xano retorna ARRAY de objetos con la estructura del file
+          // Cuando hay una imagen, it.image es un array como: [{path: "/vault/...", name: "...", type: "...", size: ...}]
+          image: Array.isArray(it.image) && it.image.length > 0 ? it.image[0] : (it.image || null),
           // Incluir las imágenes que vienen desde la relación de Xano
           // Xano puede usar guion bajo _ al inicio según la configuración del Addon
           imagen_producto_of_product: it._imagen_producto_of_product || it.imagen_producto_of_product || [],
@@ -171,7 +173,7 @@ export default function AdminProductos() {
             <input
               type="search"
               className="form-control"
-              placeholder="Buscar por nombre, slug o marca"
+              placeholder="Buscar por nombre, marca o precio"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ maxWidth: 320 }}
@@ -190,25 +192,34 @@ export default function AdminProductos() {
           <table className="table mb-0">
             <thead>
               <tr>
-                <th>ID</th>
+                <th style={{ width: '60px' }}>ID</th>
                 <th>Nombre</th>
-                <th>Slug</th>
-                <th>Marca</th>
-                <th>Precio</th>
-                <th>Moneda</th>
-                <th>Activo</th>
-                <th>Acciones</th>
+                <th style={{ width: '120px' }}>Precio Costo</th>
+                <th style={{ width: '120px' }}>Precio Venta</th>
+                <th style={{ width: '120px' }}>Ganancias</th>
+                <th style={{ width: '150px' }}>Marca</th>
+                <th style={{ width: '100px' }}>Activo</th>
+                <th style={{ width: '150px' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
                   <td>{p.id}</td>
-                  <td>{p.name}</td>
-                  <td><code>{p.slug}</code></td>
+                  <td>
+                    <strong>{p.name}</strong>
+                    {p.brand && <div className="text-muted small">{p.brand}</div>}
+                  </td>
+                  <td className="text-muted">
+                    ${(p.slug || 0).toLocaleString('es-CL')}
+                  </td>
+                  <td className="fw-bold text-success">
+                    ${(p.price || 0).toLocaleString('es-CL')}
+                  </td>
+                  <td className="fw-semibold text-primary">
+                    ${(p.compare_at_price || 0).toLocaleString('es-CL')}
+                  </td>
                   <td>{p.brand || '-'}</td>
-                  <td>${p.price.toLocaleString('es-CL')}</td>
-                  <td>{p.currency}</td>
                   <td>
                     {p.is_active ? (
                       <span className="badge bg-success">Activo</span>
