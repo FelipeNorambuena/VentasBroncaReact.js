@@ -6,17 +6,31 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
 
   const [form, setForm] = useState({
     name: product?.name || '',
-    slug: product?.slug || '',
+    slug: product?.slug || '', // Ahora representa Precio Costo
     description: product?.description || '',
     brand: product?.brand || '',
-    price: product?.price || '',
-    compare_at_price: product?.compare_at_price || '',
-    currency: product?.currency || 'CLP',
+    price: product?.price || '', // Precio Venta
+    compare_at_price: product?.compare_at_price || '', // Ganancias (calculado)
+    currency: 'CLP', // Siempre CLP, oculto
     is_active: product?.is_active ?? true,
     tags: product?.tags ? product.tags.join(',') : '',
     attributes: product?.attributes || '',
     category_id: product?.category_id || ''
   })
+  
+  // Lista de categorías disponibles
+  const categorias = [
+    { id: '', nombre: 'Seleccionar categoría...' },
+    { id: 'Militares', nombre: 'Militares' },
+    { id: 'Mochilas y bolsos', nombre: 'Mochilas y bolsos' },
+    { id: 'Camping', nombre: 'Camping' },
+    { id: 'Jockey', nombre: 'Jockey' },
+    { id: 'Caza y pesca', nombre: 'Caza y pesca' },
+    { id: 'Iluminación', nombre: 'Iluminación' },
+    { id: 'Lentes', nombre: 'Lentes' },
+    { id: 'Botas Militares', nombre: 'Botas Militares' },
+    { id: 'Accesorios', nombre: 'Accesorios' }
+  ]
   
   const [imagenes, setImagenes] = useState([])
   const [imagenesExistentes, setImagenesExistentes] = useState([])
@@ -26,12 +40,12 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     if (product) {
       setForm({
         name: product.name || '',
-        slug: product.slug || '',
+        slug: product.slug || '', // Precio Costo
         description: product.description || '',
         brand: product.brand || '',
-        price: product.price || '',
-        compare_at_price: product.compare_at_price || '',
-        currency: product.currency || 'CLP',
+        price: product.price || '', // Precio Venta
+        compare_at_price: product.compare_at_price || '', // Ganancias
+        currency: 'CLP',
         is_active: product.is_active ?? true,
         tags: product.tags ? (Array.isArray(product.tags) ? product.tags.join(',') : product.tags) : '',
         attributes: product.attributes || '',
@@ -48,6 +62,18 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
     }
     setImagenes([])
   }, [product])
+  
+  // Calcular ganancias automáticamente cuando cambian precio costo o precio venta
+  useEffect(() => {
+    const precioCosto = parseFloat(form.slug) || 0 // slug = precio costo
+    const precioVenta = parseFloat(form.price) || 0 // price = precio venta
+    const ganancias = precioVenta - precioCosto
+    
+    setForm(prev => ({
+      ...prev,
+      compare_at_price: ganancias >= 0 ? ganancias.toFixed(2) : '0'
+    }))
+  }, [form.slug, form.price])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -86,6 +112,12 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
     let productData = { ...form };
+    
+    // Convertir valores numéricos a enteros
+    productData.slug = parseInt(productData.slug) || 0; // Precio Costo
+    productData.price = parseInt(productData.price) || 0; // Precio Venta
+    productData.compare_at_price = parseInt(productData.compare_at_price) || 0; // Ganancias
+    productData.category_id = parseInt(productData.category_id) || 1; // Categoría
     
     // Convertir tags a array si es string
     if (typeof productData.tags === 'string') {
@@ -218,48 +250,112 @@ export default function ProductModal({ show, onClose, product = null, onSave }) 
             <div className="modal-body" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
               {/* Datos básicos del producto */}
               <div className="row g-3 mb-4">
-                <div className="col-md-6">
-                  <label className="form-label">Nombre *</label>
-                  <input className="form-control" name="name" value={form.name} onChange={handleChange} required />
+                <div className="col-12">
+                  <label className="form-label fw-bold">Nombre del Producto *</label>
+                  <input 
+                    className="form-control" 
+                    name="name" 
+                    value={form.name} 
+                    onChange={handleChange} 
+                    placeholder="Ej: Mochila Táctica 40L"
+                    required 
+                  />
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label">Slug *</label>
-                  <input className="form-control" name="slug" value={form.slug} onChange={handleChange} required />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Marca</label>
-                  <input className="form-control" name="brand" value={form.brand} onChange={handleChange} />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Categoría (ID)</label>
-                  <input className="form-control" name="category_id" type="number" value={form.category_id} onChange={handleChange} />
-                </div>
+                
                 <div className="col-md-4">
-                  <label className="form-label">Precio *</label>
-                  <input className="form-control" name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required />
+                  <label className="form-label fw-bold">Precio Costo *</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input 
+                      className="form-control" 
+                      name="slug" 
+                      type="number" 
+                      value={form.slug} 
+                      onChange={handleChange}
+                      placeholder="0"
+                      required 
+                    />
+                  </div>
+                  <small className="text-muted">Costo del producto</small>
                 </div>
+                
                 <div className="col-md-4">
-                  <label className="form-label">Precio Comparativo</label>
-                  <input className="form-control" name="compare_at_price" type="number" step="0.01" value={form.compare_at_price} onChange={handleChange} />
+                  <label className="form-label fw-bold">Precio Venta *</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input 
+                      className="form-control" 
+                      name="price" 
+                      type="number" 
+                      value={form.price} 
+                      onChange={handleChange}
+                      placeholder="0"
+                      required 
+                    />
+                  </div>
+                  <small className="text-muted">Precio de venta al público</small>
                 </div>
+                
                 <div className="col-md-4">
-                  <label className="form-label">Moneda</label>
-                  <input className="form-control" name="currency" value={form.currency} onChange={handleChange} placeholder="CLP" />
+                  <label className="form-label fw-bold">Ganancias Producto</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-success text-white">$</span>
+                    <input 
+                      className="form-control bg-light" 
+                      name="compare_at_price" 
+                      type="number" 
+                      value={form.compare_at_price} 
+                      readOnly
+                      disabled
+                    />
+                  </div>
+                  <small className="text-success fw-semibold">Calculado automáticamente</small>
+                </div>
+                
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Marca</label>
+                  <input 
+                    className="form-control" 
+                    name="brand" 
+                    value={form.brand} 
+                    onChange={handleChange}
+                    placeholder="Ej: Rapala, Gerber, etc."
+                  />
+                </div>
+                
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Categoría *</label>
+                  <select 
+                    className="form-select" 
+                    name="category_id" 
+                    value={form.category_id} 
+                    onChange={handleChange}
+                    required
+                  >
+                    {categorias.map(cat => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nombre}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-12">
                   <label className="form-label">Descripción</label>
                   <textarea className="form-control" name="description" rows={3} value={form.description} onChange={handleChange}></textarea>
                 </div>
                 <div className="col-12">
-                  <label className="form-label">Tags (separados por coma)</label>
-                  <input className="form-control" name="tags" value={form.tags} onChange={handleChange} placeholder="camping, outdoor, militar" />
+                  <label className="form-label fw-bold">Tags (separados por coma)</label>
+                  <input 
+                    className="form-control" 
+                    name="tags" 
+                    value={form.tags} 
+                    onChange={handleChange} 
+                    placeholder="camping, outdoor, militar, impermeable" 
+                  />
+                  <small className="text-muted">Palabras clave para búsqueda y filtrado del producto</small>
                 </div>
                 <div className="col-12">
-                  <label className="form-label">Atributos (JSON)</label>
-                  <input className="form-control" name="attributes" value={form.attributes} onChange={handleChange} placeholder='{"color": "verde", "talla": "M"}' />
-                </div>
-                <div className="col-12">
-                  <label className="form-label">¿Activo?</label>
+                  <label className="form-label fw-bold">¿Activo?</label>
                   <select className="form-select" name="is_active" value={form.is_active ? '1' : '0'} onChange={e => setForm(f => ({ ...f, is_active: e.target.value === '1' }))}>
                     <option value="1">Sí</option>
                     <option value="0">No</option>
