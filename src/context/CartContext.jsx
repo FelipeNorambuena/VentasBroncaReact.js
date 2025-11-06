@@ -43,6 +43,11 @@ export function CartProvider({ children }) {
     setTimeout(() => setNotification(null), 3000)
   }, [])
 
+  // Función para limpiar notificaciones manualmente
+  const clearNotification = useCallback(() => {
+    setNotification(null)
+  }, [])
+
   const addItem = useCallback((product) => {
     if (!product.id || !product.name || !product.price) {
         showNotification('Error: Datos del producto incompletos', 'error');
@@ -153,6 +158,7 @@ export function CartProvider({ children }) {
         totalPrice,
         notification,
         showNotification,
+        clearNotification,
         confirm, // Pasar el estado del modal
         formatCurrency
     }}>

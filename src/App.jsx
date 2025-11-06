@@ -19,6 +19,8 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Productos from './pages/Productos'
 import BlogList from './pages/BlogList'
 import BlogPost from './pages/BlogPost'
+import Profile from './pages/Profile'
+import Orders from './pages/Orders'
 import AdminLayout from './admin/AdminLayout'
 import AdminDashboard from './admin/AdminDashboard'
 import AdminUsuarios from './admin/AdminUsuarios'
@@ -63,6 +65,8 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/perfil" element={<Profile />} />
+        <Route path="/mis-pedidos" element={<Orders />} />
         <Route path="/admin-help" element={<AdminInstructions />} />
         <Route path="/nosotros" element={<About />} />
         <Route path="/blog" element={<BlogList />} />

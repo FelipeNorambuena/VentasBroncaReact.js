@@ -32,14 +32,12 @@ export default function Navbar() {
 
   const handleProfileClick = () => {
     setDropdownOpen(false)
-    // TODO: Navegar a perfil cuando esté implementado
-    console.log('Ir a perfil - pendiente de implementar')
+    navigate('/perfil')
   }
 
   const handleOrdersClick = () => {
     setDropdownOpen(false)
-    // TODO: Navegar a pedidos cuando esté implementado
-    console.log('Ir a mis pedidos - pendiente de implementar')
+    navigate('/mis-pedidos')
   }
 
   // Función para manejar la búsqueda
