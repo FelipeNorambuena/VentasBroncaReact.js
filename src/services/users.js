@@ -37,7 +37,7 @@ export const usersService = {
       return Array.isArray(result) ? result : (result?.data || [])
     } catch (error) {
       console.error('❌ Error al obtener usuarios:', error)
-      throw error
+      return []
     }
   },
 

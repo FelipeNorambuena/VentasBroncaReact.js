@@ -32,9 +32,8 @@ export default function AdminLayout() {
         <nav>
           <ul>
             <li><NavLink to="/admin" end><i className="fas fa-home me-2"></i>Inicio</NavLink></li>
-            <li><NavLink to="/admin/usuarios"><i className="fas fa-user me-2"></i>Usuarios</NavLink></li>
+            <li><NavLink to="/admin/usuarios"><i className="fas fa-users me-2"></i>Usuarios del Sistema</NavLink></li>
             <li><NavLink to="/admin/productos"><i className="fas fa-boxes me-2"></i>Productos</NavLink></li>
-            <li><NavLink to="/admin/crear-usuario"><i className="fas fa-user-plus me-2"></i>Crear Usuario</NavLink></li>
             <li><NavLink to="/admin/configuracion"><i className="fas fa-cog me-2"></i>Configuración</NavLink></li>
             <li><NavLink to="/admin/perfil"><i className="fas fa-id-badge me-2"></i>Perfil</NavLink></li>
           </ul>
