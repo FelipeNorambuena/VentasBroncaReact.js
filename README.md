@@ -241,7 +241,7 @@ npm run lint         # Ejecuta ESLint para verificar código
 El proyecto utiliza **Xano** como backend con dos APIs principales:
 
 #### API de Productos (`trIO7Z5n`)
-**Base URL:** `https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n`
+
 
 | Endpoint | Método | Descripción | Autenticación |
 |----------|--------|-------------|---------------|
@@ -255,7 +255,7 @@ El proyecto utiliza **Xano** como backend con dos APIs principales:
 | `/imagen_producto/{id}` | DELETE | Eliminar imagen | Sí (Admin) |
 
 #### API de Autenticación (`baot63BL`)
-**Base URL:** `https://x8ki-letl-twmt.n7.xano.io/api:baot63BL`
+
 
 | Endpoint | Método | Descripción | Autenticación |
 |----------|--------|-------------|---------------|
@@ -297,16 +297,7 @@ El proyecto utiliza **Xano** como backend con dos APIs principales:
 }
 ```
 
-#### Usuario (User)
-```javascript
-{
-  id: 1,
-  name: "Felipe Norambuena",
-  email: "felipe@ventasbronca.com",
-  role: "admin",                       // "admin" o "client"
-  created_at: 1760000000000
-}
-```
+
 
 ### Autenticación JWT
 
