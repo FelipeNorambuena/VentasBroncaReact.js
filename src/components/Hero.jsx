@@ -20,7 +20,7 @@ export default function Hero() {
           <div className="carousel-inner">
             <div className="carousel-item active">
               <img src={cazaImg} className="d-block w-100 carousel-image" alt="Productos para caza" />
-              <div className="carousel-caption d-none d-md-block">
+              <div className="carousel-caption">
                 <h1 className="display-4 fw-bold">Equipamiento para Caza</h1>
                 <p className="lead">Calidad y resistencia para tus jornadas de caza</p>
                 <Link to="/productos" className="btn btn-primary btn-lg">Ver Productos</Link>
@@ -29,7 +29,7 @@ export default function Hero() {
 
             <div className="carousel-item">
               <img src={pescaImg} className="d-block w-100 carousel-image" alt="Equipamiento para pesca" />
-              <div className="carousel-caption d-none d-md-block">
+              <div className="carousel-caption">
                 <h2 className="display-4 fw-bold">Equipamiento para Pesca</h2>
                 <p className="lead">Accesorios y herramientas para una pesca eficiente</p>
                 <Link to="/productos" className="btn btn-success btn-lg">Explorar</Link>
@@ -38,7 +38,7 @@ export default function Hero() {
 
             <div className="carousel-item">
               <img src={rapalaImg} className="d-block w-100 carousel-image" alt="Rapala - marca de pesca" />
-              <div className="carousel-caption d-none d-md-block">
+              <div className="carousel-caption">
                 <h2 className="display-4 fw-bold">Marcas y Accesorios</h2>
                 <p className="lead">Selección de marcas reconocidas y accesorios especializados</p>
                 <Link to="/productos" className="btn btn-warning btn-lg">Descubrir</Link>

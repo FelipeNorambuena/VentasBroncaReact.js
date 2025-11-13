@@ -1,7 +1,9 @@
 import React, { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 
 export default function CartModal() {
+  const navigate = useNavigate()
   const { items, totalItems, totalPrice, removeItem, clearCart } = useContext(CartContext)
 
   // Función para enviar pedido por WhatsApp
@@ -99,11 +101,20 @@ export default function CartModal() {
               </button>
               <button 
                 type="button" 
-                className="btn btn-success" 
+                className="btn btn-outline-success" 
                 onClick={sendWhatsAppOrder}
               >
                 <i className="fab fa-whatsapp me-2"></i>
-                Finalizar Compra
+                WhatsApp
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-success" 
+                data-bs-dismiss="modal"
+                onClick={() => navigate('/checkout')}
+              >
+                <i className="fas fa-shopping-bag me-2"></i>
+                Ir a Checkout
               </button>
             </div>
           )}

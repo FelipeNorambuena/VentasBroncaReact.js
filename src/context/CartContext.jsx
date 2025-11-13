@@ -105,8 +105,15 @@ export function CartProvider({ children }) {
     })
   }, [items, showNotification])
   
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback((skipConfirmation = false) => {
     if (items.length === 0) return
+    
+    if (skipConfirmation) {
+      // Limpiar sin confirmación (para checkout exitoso)
+      setItems([])
+      return
+    }
+    
     // Mostrar el modal de confirmación
     setConfirm({
         title: 'Vaciar Carrito',
@@ -156,6 +163,7 @@ export function CartProvider({ children }) {
         checkout,
         totalItems, 
         totalPrice,
+        total: totalPrice, // Alias para compatibilidad
         notification,
         showNotification,
         clearNotification,
