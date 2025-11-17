@@ -9,16 +9,16 @@ export const authService = {
   /**
    * Login unificado: Intenta primero con tabla user (admins), luego con tabla client (clientes)
    */
-  async login({ email, password }) {
+  async login({ name, email, password }) {
     console.log('🔐 Intentando login con:', email)
-    
+    // Si el nombre está vacío, usar la parte antes del @ del email
+    const safeName = name && name.trim() ? name.trim() : (email ? email.split('@')[0] : '');
     try {
       // INTENTO 1: Login como Admin (tabla user con endpoint /auth/login)
       console.log('👤 Intento 1: Buscando en tabla USER (admins)...')
       try {
-        const userResult = await http.post('/auth/login', { email, password }, { base: 'auth' })
+        const userResult = await http.post('/auth/login', { name: safeName, email, password }, { base: 'auth' })
         console.log('✅ Login exitoso como ADMIN:', userResult)
-        
         // Si el login fue exitoso, retornar con rol admin
         return {
           ...userResult,
@@ -30,7 +30,7 @@ export const authService = {
           }
         }
       } catch (adminError) {
-        console.log('⚠️ No encontrado en tabla USER, intentando tabla CLIENT...')
+        console.log('No encontrado en tabla USER, intentando tabla CLIENT...')
         // Si falla, continuar al siguiente intento
       }
       

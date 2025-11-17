@@ -199,6 +199,11 @@ function Checkout() {
   // Calcular subtotal
   const subtotal = total
 
+  // Banner para usuarios no autenticados
+  const [showGuestBanner, setShowGuestBanner] = useState(!isAuthenticated);
+  // Si el usuario no está autenticado, bloquear el submit
+  const isCheckoutDisabled = !isAuthenticated;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, paddingTop: '100px', paddingBottom: '60px', backgroundColor: '#f8f9fa' }}>
@@ -212,6 +217,19 @@ function Checkout() {
                     <i className="bi bi-bag-check me-2"></i>
                     Finalizar Compra
                   </h2>
+
+                  {/* Banner para clientes no autenticados */}
+                  {showGuestBanner && !isAuthenticated && (
+                    <div className="alert alert-warning d-flex align-items-center justify-content-between" role="alert" style={{ marginBottom: '2rem' }}>
+                      <div>
+                        <strong>¡Debes registrarte para finalizar la compra!</strong> Por favor crea una cuenta o inicia sesión para continuar.
+                      </div>
+                      <div>
+                        <button type="button" className="btn btn-primary btn-sm me-2" onClick={() => navigate('/register')}>Registrarse</button>
+                        <button type="button" className="btn btn-success btn-sm" onClick={() => navigate('/login')}>Iniciar sesión</button>
+                      </div>
+                    </div>
+                  )}
 
                   <form onSubmit={handleSubmit}>
                     {/* Información de contacto */}
@@ -404,7 +422,7 @@ function Checkout() {
                     <button
                       type="submit"
                       className="btn btn-lg w-100"
-                      disabled={loading || items.length === 0}
+                      disabled={loading || items.length === 0 || isCheckoutDisabled}
                       style={{
                         backgroundColor: '#2d5016',
                         color: 'white',
@@ -413,6 +431,7 @@ function Checkout() {
                         padding: '15px',
                         transition: 'all 0.3s ease'
                       }}
+                      title={isCheckoutDisabled ? 'Debes estar registrado para finalizar la compra' : ''}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#3d6826'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#2d5016'}
                     >

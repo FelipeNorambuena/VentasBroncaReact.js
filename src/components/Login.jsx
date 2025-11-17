@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 
 
 export default function Login() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
@@ -27,6 +28,7 @@ export default function Login() {
 
   function validate() {
     const err = {}
+    if (!name) err.name = 'Ingrese su nombre.'
     if (!email) err.email = 'Ingrese su correo electrónico.'
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) err.email = 'Ingrese un correo con formato válido.'
     if (!password) err.password = 'Ingrese su contraseña.'
@@ -40,7 +42,7 @@ export default function Login() {
     setMessage(null)
     if (!validate()) return
     setLoading(true)
-    authService.login({ email, password })
+    authService.login({ name, email, password })
       .then(async (result) => {
         if (!result) {
           setLoading(false)
@@ -102,6 +104,11 @@ export default function Login() {
         </div>
 
         <form id="loginForm" onSubmit={handleSubmit} noValidate>
+          <div className="mb-3">
+            <label htmlFor="loginName" className="form-label">Nombre</label>
+            <input type="text" className={`form-control ${errors.name ? 'is-invalid' : ''}`} id="loginName" name="name" placeholder="Ingrese su nombre" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+            <div className="invalid-feedback">{errors.name}</div>
+          </div>
           <div className="mb-3">
             <label htmlFor="loginEmail" className="form-label">Correo electrónico</label>
             <input type="email" className={`form-control ${errors.email ? 'is-invalid' : ''}`} id="loginEmail" name="email" placeholder="Ingrese su correo" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />

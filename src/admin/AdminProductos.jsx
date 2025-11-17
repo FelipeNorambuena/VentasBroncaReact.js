@@ -72,7 +72,11 @@ export default function AdminProductos() {
         if (mounted) setItems(mapped)
       } catch (err) {
         console.error('No se pudo cargar productos', err)
-        if (mounted) setError(err.message || 'Error cargando productos')
+        let customMsg = err.message || 'Error cargando productos';
+        if (customMsg.includes('Your plan only supports 10 requests per 20 seconds')) {
+          customMsg = 'Has realizado demasiadas solicitudes en poco tiempo. Por favor espera unos segundos y vuelve a intentarlo. Si el problema persiste, contacta al administrador.';
+        }
+        if (mounted) setError(customMsg)
       } finally {
         if (mounted) setLoading(false)
       }
