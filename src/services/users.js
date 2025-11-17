@@ -32,7 +32,8 @@ export const usersService = {
   async list() {
     console.log('📋 Obteniendo lista de usuarios...')
     try {
-      const result = await http.get('/user')
+      // Usar el endpoint GET correcto de Xano para la lista de usuarios
+      const result = await http.get('https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n/user')
       console.log('✅ Usuarios obtenidos:', result)
       return Array.isArray(result) ? result : (result?.data || [])
     } catch (error) {
@@ -84,7 +85,7 @@ export const usersService = {
   async delete(id) {
     console.log('🗑️ Eliminando usuario ID:', id)
     try {
-      const result = await http.delete(`/user/${id}`)
+      const result = await http.del(`/user/${id}`)
       console.log('✅ Usuario eliminado:', result)
       return result
     } catch (error) {
