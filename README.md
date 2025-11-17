@@ -7,6 +7,8 @@
 
 Plataforma de e-commerce moderna y completa para la venta de productos tácticos, militares, camping y outdoor. Desarrollada con React 19 y Vite, integrada con backend Xano.
 
+**🌐 Aplicación en producción:** [https://ventas-bronca-react-js.vercel.app](https://ventas-bronca-react-js.vercel.app)
+
 ---
 
 ## 📑 Tabla de Contenidos
@@ -206,10 +208,10 @@ npm install
 Crea un archivo `.env.local` en la raíz del proyecto:
 
 ```env
-# URL base de la API de Xano
+# URL base de la API de Xano (Endpoints principales: productos, clientes, órdenes)
 VITE_API_BASE_URL=https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n
 
-# URL de autenticación de Xano (si es diferente)
+# URL de autenticación de Xano (Endpoints de login, registro, perfil)
 VITE_AUTH_API_URL=https://x8ki-letl-twmt.n7.xano.io/api:baot63BL
 ```
 
@@ -232,36 +234,126 @@ npm run preview      # Vista previa del build de producción
 npm run lint         # Ejecuta ESLint para verificar código
 ```
 
-------
+### 👥 Usuarios de Prueba
+
+#### Cuenta de Administrador
+- **Nombre:** `admin`
+- **Email:** `admin@ventasbronca.com`
+- **Contraseña:** `felipe123`
+- **Permisos:** Acceso completo al panel de administración (`/admin`)
+
+#### Cuenta de Cliente
+- **Nombre:** `felipe `
+- **Email:** `felipe@gmail.com`
+- **Contraseña:** `felipe123`
+- **Permisos:** Compra de productos, visualización de pedidos, gestión de perfil
+
+---
 
 ## 🌐 API y Backend
 
 ### Arquitectura Xano
 
-El proyecto utiliza **Xano** como backend con dos APIs principales:
+El proyecto utiliza **Xano** como Backend as a Service (BaaS). Xano es una plataforma visual de backend que proporciona:
 
-#### API de Productos (`trIO7Z5n`)
+- **Base de datos relacional PostgreSQL** gestionada visualmente
+- **APIs REST** generadas automáticamente
+- **Autenticación JWT** integrada
+- **File Storage (Vault)** para almacenamiento de imágenes
+- **Rate limiting** (10 requests por 20 segundos en plan gratuito)
 
+**APIs del proyecto:**
 
-| Endpoint | Método | Descripción | Autenticación |
-|----------|--------|-------------|---------------|
-| `/product` | GET | Listar productos (con paginación) | No |
-| `/product` | POST | Crear nuevo producto | Sí (Admin) |
-| `/product/{id}` | GET | Obtener producto por ID | No |
-| `/product/{id}` | PATCH | Actualizar producto | Sí (Admin) |
-| `/product/{id}` | DELETE | Eliminar producto | Sí (Admin) |
-| `/upload/image` | POST | Subir imagen a Xano Vault | Sí |
-| `/imagen_producto` | POST | Crear relación imagen-producto | Sí |
-| `/imagen_producto/{id}` | DELETE | Eliminar imagen | Sí (Admin) |
+#### API Principal de Datos (`/api:trIO7Z5n`)
+**Base URL:** `https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n`
 
-#### API de Autenticación (`baot63BL`)
+**Tablas:**
+- `product` - Catálogo de productos
+- `imagen_producto` - Relación producto-imágenes
+- `client` - Clientes registrados
+- `user` - Usuarios administradores
+- `orders` - Órdenes de compra
+- `order_items` - Items/productos de cada orden
 
+#### API de Autenticación (`/api:baot63BL`)
+**Base URL:** `https://x8ki-letl-twmt.n7.xano.io/api:baot63BL`
 
-| Endpoint | Método | Descripción | Autenticación |
-|----------|--------|-------------|---------------|
-| `/auth/register` | POST | Registrar nuevo usuario | No |
-| `/auth/login` | POST | Iniciar sesión | No |
-| `/auth/me` | GET | Obtener perfil del usuario | Sí (JWT) |
+**Funciones:**
+- Login con JWT
+- Registro de usuarios
+- Gestión de sesiones
+- Validación de tokens
+
+### Endpoints Disponibles
+
+#### 📦 Productos
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `GET` | `/product` | Listar todos los productos | No | `page`, `per_page` |
+| `GET` | `/product/{id}` | Obtener producto por ID | No | - |
+| `POST` | `/product` | Crear nuevo producto | Sí (Admin) | `name`, `price`, `description`, etc. |
+| `PATCH` | `/product/{id}` | Actualizar producto | Sí (Admin) | Campos a actualizar |
+| `DELETE` | `/product/{id}` | Eliminar producto | Sí (Admin) | - |
+
+#### 🖼️ Imágenes de Productos
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `POST` | `/upload/image` | Subir imagen al Vault de Xano | Sí | `content` (File) |
+| `GET` | `/imagen_producto` | Listar relaciones imagen-producto | No | - |
+| `POST` | `/imagen_producto` | Crear relación imagen-producto | Sí (Admin) | `product_id`, `image` |
+| `DELETE` | `/imagen_producto/{id}` | Eliminar imagen | Sí (Admin) | - |
+
+#### 👤 Autenticación (`/api:baot63BL`)
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `POST` | `/auth/signup` | Registrar nuevo usuario | No | `name`, `email`, `password` |
+| `POST` | `/auth/login` | Iniciar sesión | No | `name`, `email`, `password` |
+| `GET` | `/auth/me` | Obtener perfil del usuario actual | Sí (JWT) | - |
+| `PATCH` | `/auth/me` | Actualizar perfil | Sí (JWT) | Campos a actualizar |
+
+#### 👥 Usuarios Administradores
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `GET` | `/user` | Listar usuarios administradores | Sí (Admin) | - |
+| `POST` | `/user` | Crear usuario administrador | Sí (Admin) | `name`, `email`, `password`, `role` |
+| `GET` | `/user/{id}` | Obtener usuario por ID | Sí (Admin) | - |
+| `PATCH` | `/user/{id}` | Actualizar usuario | Sí (Admin) | Campos a actualizar |
+| `DELETE` | `/user/{id}` | Eliminar usuario | Sí (Admin) | - |
+
+#### 🧑‍💼 Clientes
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `GET` | `/client` | Listar todos los clientes | Sí (Admin) | - |
+| `GET` | `/client/{id}` | Obtener cliente por ID | Sí | - |
+| `POST` | `/client` | Crear nuevo cliente | No | `name`, `email`, `password` |
+| `PATCH` | `/client/{id}` | Actualizar cliente | Sí | Campos a actualizar |
+| `DELETE` | `/client/{id}` | Eliminar cliente | Sí (Admin) | - |
+
+#### 📋 Órdenes de Compra
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `GET` | `/orders` | Listar todas las órdenes | Sí (Admin) | - |
+| `GET` | `/orders?client_id={id}` | Órdenes de un cliente específico | Sí | `client_id` |
+| `GET` | `/orders/{id}` | Obtener orden por ID | Sí | - |
+| `POST` | `/orders` | Crear nueva orden | Sí | `client_id`, `total`, `status` |
+| `PATCH` | `/orders/{id}` | Actualizar estado de orden | Sí (Admin) | `status`, etc. |
+| `DELETE` | `/orders/{id}` | Eliminar orden | Sí (Admin) | - |
+
+#### 🛒 Items de Orden
+
+| Método | Endpoint | Descripción | Autenticación | Parámetros |
+|--------|----------|-------------|---------------|------------|
+| `GET` | `/order_items` | Listar todos los items | Sí | - |
+| `GET` | `/order_items/{id}` | Obtener item por ID | Sí | - |
+| `POST` | `/order_items` | Crear item de orden | Sí | `order_id`, `product_id`, `quantity`, `price` |
+| `PATCH` | `/order_items/{id}` | Actualizar item | Sí | Campos a actualizar |
+| `DELETE` | `/order_items/{id}` | Eliminar item | Sí | - |
 
 ### Estructura de Datos
 
@@ -297,7 +389,37 @@ El proyecto utiliza **Xano** como backend con dos APIs principales:
 }
 ```
 
+#### Orden (Order)
+```javascript
+{
+  id: 15,
+  client_id: 8,
+  total: 89970,
+  status: "pendiente",  // "pendiente" | "enviado" | "rechazado"
+  created_at: 1760645123456,
+  _client: {
+    id: 8,
+    name: "Felipe Ignacio",
+    email: "felipeignacionc24@gmail.com"
+  }
+}
+```
 
+#### Item de Orden (Order Item)
+```javascript
+{
+  id: 23,
+  order_id: 15,
+  product_id: 42,
+  quantity: 3,
+  price: 29990,
+  _product: {
+    id: 42,
+    name: "Guantes Impermeables",
+    image: [...]
+  }
+}
+```
 
 ### Autenticación JWT
 
@@ -308,6 +430,12 @@ El sistema usa **JSON Web Tokens (JWT)** para autenticación:
 3. **Uso:** Token se incluye en header `Authorization: Bearer <token>` en cada petición
 4. **Validación:** Xano valida el token en endpoints protegidos
 5. **Expiración:** Token tiene validez de 7 días (configurable en Xano)
+
+### Limitaciones del Backend
+
+- **Rate Limit:** 10 requests por 20 segundos (plan gratuito de Xano)
+- **Almacenamiento:** 1GB de espacio en Vault para imágenes
+- **Base de datos:** PostgreSQL con límite de 10,000 registros
 
 ---
 
@@ -854,6 +982,14 @@ export function getImageUrl(imageObject) {
 
 ## 🚢 Despliegue
 
+### 🌐 Aplicación en Producción
+
+**URL de despliegue:** [https://ventas-bronca-react-js.vercel.app](https://ventas-bronca-react-js.vercel.app)
+
+**Plataforma:** Vercel  
+**Integración continua:** Rama `felipe-norambuena` del repositorio GitHub  
+**Auto-deploy:** Activado (cada push a la rama principal despliega automáticamente)
+
 ### Build para Producción
 
 ```powershell
@@ -865,9 +1001,18 @@ Genera carpeta `/dist` con:
 - Assets optimizados
 - Source maps
 
-### Opciones de Hosting
+### Configuración de Variables de Entorno en Vercel
 
-#### Vercel (Recomendado)
+En el panel de Vercel, configurar las siguientes variables:
+
+```env
+VITE_API_BASE_URL=https://x8ki-letl-twmt.n7.xano.io/api:trIO7Z5n
+VITE_AUTH_API_URL=https://x8ki-letl-twmt.n7.xano.io/api:baot63BL
+```
+
+### Opciones Alternativas de Hosting
+
+#### Vercel (Recomendado - Actual)
 ```powershell
 npm install -g vercel
 vercel
@@ -884,6 +1029,48 @@ netlify deploy --prod
 npm run build
 # Subir carpeta /dist a rama gh-pages
 ```
+
+### Rutas de la Aplicación
+
+#### 🌍 Rutas Públicas (Accesibles sin autenticación)
+
+| Ruta | Componente | Descripción |
+|------|-----------|-------------|
+| `/` | `App.jsx` (Hero + ProductsSection) | Página principal con carrusel y catálogo |
+| `/productos` | `pages/Productos.jsx` | Catálogo completo de productos con búsqueda |
+| `/nosotros` | `components/About.jsx` | Información sobre la empresa |
+| `/contacto` | `components/Contact.jsx` | Formulario de contacto |
+| `/blog` | `components/BlogList.jsx` | Listado de artículos del blog |
+| `/blog/:slug` | `components/BlogPost.jsx` | Artículo individual del blog |
+| `/login` | `components/Login.jsx` | Inicio de sesión |
+| `/registro` | `components/Register.jsx` | Registro de nuevos usuarios |
+
+#### 🔒 Rutas Protegidas (Requieren autenticación de cliente)
+
+| Ruta | Componente | Descripción |
+|------|-----------|-------------|
+| `/perfil` | `pages/Profile.jsx` | Perfil del usuario cliente |
+| `/mis-pedidos` | `pages/Orders.jsx` | Historial de pedidos del cliente |
+| `/checkout` | `pages/Checkout.jsx` | Finalizar compra (requiere estar logueado) |
+| `/checkout/confirmacion` | - | Confirmación de pedido realizado |
+
+#### 👨‍💼 Rutas de Administración (Requieren rol admin)
+
+| Ruta | Componente | Descripción |
+|------|-----------|-------------|
+| `/admin` | `admin/AdminDashboard.jsx` | Dashboard con estadísticas generales |
+| `/admin/usuarios` | `admin/AdminUsuarios.jsx` | Gestión de usuarios del sistema |
+| `/admin/productos` | `admin/AdminProductos.jsx` | CRUD de productos con imágenes |
+| `/admin/pagos-ordenes` | `admin/AdminPagosOrdenes.jsx` | Gestión de pagos pendientes |
+| `/admin/todas-ordenes` | `admin/AdminTodasOrdenes.jsx` | Todas las órdenes (CRUD completo) |
+| `/admin/ventas-dia` | `admin/AdminVentasDia.jsx` | Reporte de ventas del día |
+| `/admin/ventas-vendedor` | `admin/AdminVentasVendedor.jsx` | Reporte por vendedor |
+| `/admin/inventario` | `admin/AdminInventario.jsx` | Control de stock e inventario |
+| `/admin/crear-usuario` | `admin/AdminCrearUsuario.jsx` | Crear nuevo usuario administrador |
+| `/admin/configuracion` | `admin/AdminConfiguracion.jsx` | Configuraciones del sistema |
+| `/admin/perfil` | `admin/AdminPerfil.jsx` | Perfil del administrador |
+
+**Nota:** Las rutas de administración están protegidas con `ProtectedRoute` que verifica el rol `admin` del usuario autenticado.
 
 ---
 
