@@ -47,7 +47,11 @@ export default function Orders() {
       await loadProductImages(sortedOrders)
     } catch (err) {
       console.error('Error al cargar pedidos:', err)
-      setError('No se pudieron cargar los pedidos. Intenta nuevamente.')
+      let customMsg = err.message || 'No se pudieron cargar los pedidos. Intenta nuevamente.';
+      if (customMsg.includes('Your plan only supports 10 requests per 20 seconds')) {
+        customMsg = 'Has realizado demasiadas solicitudes. Por favor espera unos segundos y vuelve a intentarlo.';
+      }
+      setError(customMsg)
     } finally {
       setLoading(false)
     }
@@ -98,6 +102,8 @@ export default function Orders() {
 
   // Ver detalle de un pedido
   const handleViewDetail = (order) => {
+    console.log('📋 Mostrando detalle del pedido:', order)
+    console.log('📦 Items del pedido:', order.order_items)
     setSelectedOrder(order)
   }
 

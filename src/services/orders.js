@@ -23,8 +23,38 @@ export const ordersService = {
   async create(orderData) {
     console.log('📦 Creando pedido:', orderData)
     try {
+      // Crear la orden
       const result = await http.post('/orders', orderData)
       console.log('✅ Pedido creado exitosamente:', result)
+      
+      // Crear los order_items manualmente
+      if (orderData.items && orderData.items.length > 0) {
+        console.log('📝 Creando items del pedido...')
+        const orderId = result.id || result.data?.id
+        
+        if (orderId) {
+          const itemPromises = orderData.items.map(item => 
+            http.post('/order_items', {
+              order_id: orderId,
+              product_id: item.product_id,
+              product_name: item.product_name,
+              quantity: item.quantity,
+              price: item.price,
+              subtotal: item.price * item.quantity
+            }).catch(err => {
+              console.warn('⚠️ Error al crear item:', err)
+              return null
+            })
+          )
+          
+          const createdItems = await Promise.all(itemPromises)
+          console.log('✅ Items creados:', createdItems.filter(Boolean))
+          
+          // Agregar los items al resultado
+          result.order_items = createdItems.filter(Boolean)
+        }
+      }
+      
       return result
     } catch (error) {
       console.error('❌ Error al crear pedido:', error)
@@ -71,21 +101,39 @@ export const ordersService = {
    * @returns {Promise<Array>} Lista de pedidos del cliente
    */
   async getByClient(clientId) {
-    console.log(`� Obteniendo pedidos del cliente ${clientId}...`)
+    console.log(`📦 Obteniendo pedidos del cliente ${clientId}...`)
     try {
-      // Intenta primero con el endpoint específico
+      // Usar query params directamente en lugar de endpoint que no existe
+      let clientOrders = []
       try {
-        const result = await http.get(`/orders/client/${clientId}`)
+        const result = await http.get(`/orders?client_id=${clientId}`)
+        clientOrders = Array.isArray(result) ? result : [result]
         console.log('✅ Pedidos del cliente obtenidos:', result)
-        return result
-      } catch (endpointError) {
-        // Si el endpoint no existe, obtener todos y filtrar
-        console.log('⚠️ Endpoint /orders/client/{id} no existe, filtrando del lado cliente...')
+      } catch (queryError) {
+        // Si falla, obtener todos y filtrar (último recurso)
+        console.log('⚠️ Query params falló, obteniendo todos...')
         const allOrders = await this.getAll()
-        const clientOrders = allOrders.filter(order => order.client_id === clientId)
+        clientOrders = allOrders.filter(order => order.client_id === clientId)
         console.log('✅ Pedidos del cliente filtrados:', clientOrders)
-        return clientOrders
       }
+
+      // Cargar order_items para cada pedido si no vienen incluidos
+      const ordersWithItems = await Promise.all(
+        clientOrders.map(async (order) => {
+          if (!order.order_items || order.order_items.length === 0) {
+            try {
+              const items = await http.get(`/order_items?order_id=${order.id}`)
+              return { ...order, order_items: items }
+            } catch (error) {
+              console.warn(`⚠️ No se pudieron cargar items del pedido ${order.id}`)
+              return { ...order, order_items: [] }
+            }
+          }
+          return order
+        })
+      )
+      
+      return ordersWithItems
     } catch (error) {
       console.error('❌ Error al obtener pedidos del cliente:', error)
       throw error
