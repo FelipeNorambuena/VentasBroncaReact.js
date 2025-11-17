@@ -30,6 +30,8 @@ import AdminProductos from './admin/AdminProductos'
 import AdminCrearUsuario from './admin/AdminCrearUsuario'
 import AdminConfiguracion from './admin/AdminConfiguracion'
 import AdminPerfil from './admin/AdminPerfil'
+import AdminPagosOrdenes from './admin/AdminPagosOrdenes'
+import AdminTodasOrdenes from './admin/AdminTodasOrdenes'
 
 function AppContent() {
   const { confirm } = React.useContext(CartContext)
@@ -78,12 +80,15 @@ function AppContent() {
         <Route path="/contacto" element={<Contact />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="todas-ordenes" element={<AdminTodasOrdenes />} />
           <Route index element={<AdminDashboard />} />
           <Route path="usuarios" element={<AdminUsuarios />} />
           <Route path="productos" element={<AdminProductos />} />
+          <Route path="pagos-ordenes" element={<AdminPagosOrdenes />} />
           <Route path="crear-usuario" element={<AdminCrearUsuario />} />
           <Route path="configuracion" element={<AdminConfiguracion />} />
           <Route path="perfil" element={<AdminPerfil />} />
+          <Route path="todas-ordenes" element={<AdminTodasOrdenes />} />
         </Route>
         <Route path="/" element={
           <>

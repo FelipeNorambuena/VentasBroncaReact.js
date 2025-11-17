@@ -62,7 +62,12 @@ export default function CartModal() {
                   <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                       <strong>{p.name}</strong>
-                      <div className="small text-muted">Cantidad: {p.quantity}</div>
+                      <div className="small text-muted d-flex align-items-center">
+                        Cantidad:
+                        <button className="btn btn-sm btn-outline-secondary ms-2 me-1" style={{padding:'2px 8px'}} onClick={() => updateQuantity(p.id, p.quantity - 1)} disabled={p.quantity <= 1}>-</button>
+                        <input type="number" min="1" value={p.quantity} onChange={e => updateQuantity(p.id, Math.max(1, Number(e.target.value)))} style={{width:'50px', textAlign:'center'}} className="form-control form-control-sm d-inline-block mx-1" />
+                        <button className="btn btn-sm btn-outline-secondary ms-1" style={{padding:'2px 8px'}} onClick={() => updateQuantity(p.id, p.quantity + 1)}>+</button>
+                      </div>
                     </div>
                     <div className="text-end">
                       <div className="fw-bold">${(p.price * p.quantity).toFixed(2)}</div>
