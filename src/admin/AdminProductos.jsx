@@ -3,6 +3,7 @@ import ProductModal from './ProductModal'
 import ProductPreviewModal from './ProductPreviewModal'
 import Toast from '../components/Toast'
 import { productsService } from '../services/products'
+import { productImageService } from '../services/productImage'
 import { useAuth } from '../context/AuthContext'
 
 export default function AdminProductos() {
@@ -24,8 +25,9 @@ export default function AdminProductos() {
     const q = search.toLowerCase()
     return items.filter(p =>
       (p.name || '').toLowerCase().includes(q) ||
-      (p.slug || '').toLowerCase().includes(q) ||
-      (p.brand || '').toLowerCase().includes(q)
+      (p.brand || '').toLowerCase().includes(q) ||
+      String(p.price || '').includes(q) ||
+      String(p.slug || '').includes(q)
     )
   }, [items, search])
 
@@ -37,6 +39,10 @@ export default function AdminProductos() {
       try {
         const res = await productsService.list({ page, limit })
         const list = Array.isArray(res) ? res : (res?.data || [])
+        
+        console.log('📦 Productos recibidos de Xano:', list) // DEBUG: Ver estructura completa
+        console.log('📦 Primer producto con detalle:', list[0]) // DEBUG: Ver un producto completo
+        
         const mapped = list.map((it) => ({
           id: it.id,
           name: it.name || '',
@@ -51,12 +57,26 @@ export default function AdminProductos() {
           attributes: it.attributes || '',
           category_id: it.category_id || null,
           created_at: it.created_at,
-          updated_at: it.updated_at
+          updated_at: it.updated_at,
+          // ✅ Imagen principal: Xano retorna ARRAY de objetos con la estructura del file
+          // Cuando hay una imagen, it.image es un array como: [{path: "/vault/...", name: "...", type: "...", size: ...}]
+          image: Array.isArray(it.image) && it.image.length > 0 ? it.image[0] : (it.image || null),
+          // Incluir las imágenes que vienen desde la relación de Xano
+          // Xano puede usar guion bajo _ al inicio según la configuración del Addon
+          imagen_producto_of_product: it._imagen_producto_of_product || it.imagen_producto_of_product || [],
+          imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
         }))
+        
+        console.log('📦 Productos mapeados:', mapped) // DEBUG: Ver si las imágenes están incluidas
+        
         if (mounted) setItems(mapped)
       } catch (err) {
         console.error('No se pudo cargar productos', err)
-        if (mounted) setError(err.message || 'Error cargando productos')
+        let customMsg = err.message || 'Error cargando productos';
+        if (customMsg.includes('Your plan only supports 10 requests per 20 seconds')) {
+          customMsg = 'Has realizado demasiadas solicitudes en poco tiempo. Por favor espera unos segundos y vuelve a intentarlo. Si el problema persiste, contacta al administrador.';
+        }
+        if (mounted) setError(customMsg)
       } finally {
         if (mounted) setLoading(false)
       }
@@ -70,24 +90,31 @@ export default function AdminProductos() {
     setShowModal(true)
   }
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = async (product) => {
+    // Las imágenes ya vienen con el producto desde la relación de Xano
+    // No es necesario cargarlas por separado
     setEditingProduct(product)
     setShowModal(true)
   }
 
-  const handleSaveProduct = async (formData) => {
+  const handleSaveProduct = async (formData, imageFile = null) => {
     try {
       if (!isAdmin()) throw new Error('Solo administradores pueden modificar productos')
+      
       let result;
       if (editingProduct?.id) {
-        result = await productsService.update(editingProduct.id, formData)
+        // 🎯 ACTUALIZAR producto con imagen opcional usando la nueva función
+        result = await productsService.updateWithImage(editingProduct.id, formData, imageFile)
         setToast({ show: true, message: 'Producto actualizado exitosamente', type: 'success' })
       } else {
-        result = await productsService.create(formData)
+        // 🎯 CREAR producto con imagen opcional usando la nueva función
+        result = await productsService.createWithImage(formData, imageFile)
         setToast({ show: true, message: 'Producto creado exitosamente', type: 'success' })
       }
+      
       setShowModal(false)
-      // recargar lista
+      
+      // Recargar lista
       const res = await productsService.list({ page, limit })
       const list = Array.isArray(res) ? res : (res?.data || [])
       const mapped = list.map((it) => ({
@@ -104,13 +131,16 @@ export default function AdminProductos() {
         attributes: it.attributes || '',
         category_id: it.category_id || null,
         created_at: it.created_at,
-        updated_at: it.updated_at
+        updated_at: it.updated_at,
+        image: it.image || null, // ✅ El campo en Xano se llama 'image'
+        imagenes: it._imagen_producto_of_product || it.imagen_producto_of_product || []
       }))
       setItems(mapped)
-      return result; // Devolver el producto creado para que el modal pueda subir imágenes
+      
+      return result
     } catch (err) {
       setToast({ show: true, message: err.message || 'No se pudo guardar el producto', type: 'error' })
-      throw err; // Re-lanzar el error para que el modal lo maneje
+      throw err
     }
   }
 
@@ -147,7 +177,7 @@ export default function AdminProductos() {
             <input
               type="search"
               className="form-control"
-              placeholder="Buscar por nombre, slug o marca"
+              placeholder="Buscar por nombre, marca o precio"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ maxWidth: 320 }}
@@ -166,25 +196,34 @@ export default function AdminProductos() {
           <table className="table mb-0">
             <thead>
               <tr>
-                <th>ID</th>
+                <th style={{ width: '60px' }}>ID</th>
                 <th>Nombre</th>
-                <th>Slug</th>
-                <th>Marca</th>
-                <th>Precio</th>
-                <th>Moneda</th>
-                <th>Activo</th>
-                <th>Acciones</th>
+                <th style={{ width: '120px' }}>Precio Costo</th>
+                <th style={{ width: '120px' }}>Precio Venta</th>
+                <th style={{ width: '120px' }}>Ganancias</th>
+                <th style={{ width: '150px' }}>Marca</th>
+                <th style={{ width: '100px' }}>Activo</th>
+                <th style={{ width: '150px' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
                   <td>{p.id}</td>
-                  <td>{p.name}</td>
-                  <td><code>{p.slug}</code></td>
+                  <td>
+                    <strong>{p.name}</strong>
+                    {p.brand && <div className="text-muted small">{p.brand}</div>}
+                  </td>
+                  <td className="text-muted">
+                    ${(p.slug || 0).toLocaleString('es-CL')}
+                  </td>
+                  <td className="fw-bold text-success">
+                    ${(p.price || 0).toLocaleString('es-CL')}
+                  </td>
+                  <td className="fw-semibold text-primary">
+                    ${(p.compare_at_price || 0).toLocaleString('es-CL')}
+                  </td>
                   <td>{p.brand || '-'}</td>
-                  <td>${p.price.toLocaleString('es-CL')}</td>
-                  <td>{p.currency}</td>
                   <td>
                     {p.is_active ? (
                       <span className="badge bg-success">Activo</span>

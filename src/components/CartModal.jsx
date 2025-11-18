@@ -1,8 +1,44 @@
 import React, { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 
 export default function CartModal() {
+  const navigate = useNavigate()
   const { items, totalItems, totalPrice, removeItem, clearCart } = useContext(CartContext)
+
+  // Función para enviar pedido por WhatsApp
+  const sendWhatsAppOrder = () => {
+    if (items.length === 0) {
+      alert('El carrito está vacío')
+      return
+    }
+
+    // Número de WhatsApp del negocio
+    const phoneNumber = '56974161396' // Chile: +56 974161396
+    
+    // Construir el mensaje
+    let message = '🛒 *Nuevo Pedido*\n\n'
+    
+    items.forEach((item, index) => {
+      message += `${index + 1}. *${item.name}*\n`
+      message += `   Cantidad: ${item.quantity}\n`
+      message += `   Precio unitario: $${item.price.toLocaleString('es-CL')}\n`
+      message += `   Subtotal: $${(item.price * item.quantity).toLocaleString('es-CL')}\n\n`
+    })
+    
+    message += `📊 *Total de productos:* ${totalItems}\n`
+    message += `💰 *Total a pagar:* $${totalPrice.toLocaleString('es-CL')}\n\n`
+    message += '¡Gracias por tu pedido! 😊'
+    
+    // Codificar el mensaje para URL
+    const encodedMessage = encodeURIComponent(message)
+    
+    // Crear URL de WhatsApp
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`
+    
+    // Abrir WhatsApp en nueva pestaña
+    window.open(whatsappUrl, '_blank')
+  }
 
   return (
     <div className="modal fade" id="cartModal" tabIndex={-1} aria-labelledby="cartModalLabel" aria-hidden="true">
@@ -26,7 +62,12 @@ export default function CartModal() {
                   <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                       <strong>{p.name}</strong>
-                      <div className="small text-muted">Cantidad: {p.quantity}</div>
+                      <div className="small text-muted d-flex align-items-center">
+                        Cantidad:
+                        <button className="btn btn-sm btn-outline-secondary ms-2 me-1" style={{padding:'2px 8px'}} onClick={() => updateQuantity(p.id, p.quantity - 1)} disabled={p.quantity <= 1}>-</button>
+                        <input type="number" min="1" value={p.quantity} onChange={e => updateQuantity(p.id, Math.max(1, Number(e.target.value)))} style={{width:'50px', textAlign:'center'}} className="form-control form-control-sm d-inline-block mx-1" />
+                        <button className="btn btn-sm btn-outline-secondary ms-1" style={{padding:'2px 8px'}} onClick={() => updateQuantity(p.id, p.quantity + 1)}>+</button>
+                      </div>
                     </div>
                     <div className="text-end">
                       <div className="fw-bold">${(p.price * p.quantity).toFixed(2)}</div>
@@ -51,6 +92,37 @@ export default function CartModal() {
               )}
             </div>
           </div>
+          
+          {/* Footer con botones de acción */}
+          {items.length > 0 && (
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn btn-outline-danger" 
+                onClick={clearCart}
+              >
+                <i className="fas fa-trash me-2"></i>
+                Vaciar Carrito
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-outline-success" 
+                onClick={sendWhatsAppOrder}
+              >
+                <i className="fab fa-whatsapp me-2"></i>
+                WhatsApp
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-success" 
+                data-bs-dismiss="modal"
+                onClick={() => navigate('/checkout')}
+              >
+                <i className="fas fa-shopping-bag me-2"></i>
+                Ir a Checkout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

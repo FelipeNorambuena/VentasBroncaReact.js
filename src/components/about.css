@@ -1,0 +1,284 @@
+/* Estilos para la página About con animaciones */
+
+/* Card animada general */
+.about-card {
+  background: rgba(25, 135, 84, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(25, 135, 84, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(25, 135, 84, 0.1);
+  height: 100%;
+}
+
+.about-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(25, 135, 84, 0.2);
+  border-color: #198754;
+  background: rgba(25, 135, 84, 0.08);
+}
+
+/* Card de historia con imagen */
+.history-card {
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(25, 135, 84, 0.03) 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(25, 135, 84, 0.15);
+  transition: all 0.4s ease;
+  border: 1px solid rgba(25, 135, 84, 0.12);
+}
+
+.history-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(25, 135, 84, 0.25);
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.12) 0%, rgba(25, 135, 84, 0.05) 100%);
+}
+
+.history-card img {
+  transition: transform 0.6s ease;
+}
+
+.history-card:hover img {
+  transform: scale(1.1);
+}
+
+/* Card de misión y visión */
+.mission-vision-card {
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.12) 0%, rgba(25, 135, 84, 0.05) 100%);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  box-shadow: 0 8px 25px rgba(25, 135, 84, 0.2);
+  transition: all 0.4s ease;
+  border-left: 5px solid #198754;
+}
+
+.mission-vision-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(25, 135, 84, 0.3);
+  border-left-width: 8px;
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.18) 0%, rgba(25, 135, 84, 0.08) 100%);
+}
+
+.mission-vision-card h2 {
+  position: relative;
+  display: inline-block;
+}
+
+.mission-vision-card h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: #198754;
+  transition: width 0.4s ease;
+}
+
+.mission-vision-card:hover h2::after {
+  width: 100%;
+}
+
+/* Cards de propuesta de valor */
+.value-card {
+  background: rgba(25, 135, 84, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+  transition: all 0.3s ease;
+  border-top: 4px solid rgba(25, 135, 84, 0.9);
+  height: 100%;
+}
+
+.value-card:hover {
+  transform: translateY(-10px) rotate(1deg);
+  box-shadow: 0 15px 35px rgba(25, 135, 84, 0.4);
+  border-top-color: #ffffff;
+  background: rgba(25, 135, 84, 0.85);
+}
+
+.value-card h5 {
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.value-card:hover h5 {
+  color: #ffffff;
+}
+
+.value-card p {
+  color: #ffffff !important;
+}
+
+.value-card i {
+  font-size: 3rem;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.value-card:hover i {
+  transform: scale(1.2) rotate(360deg);
+}
+
+/* Cards de valores */
+.core-value-card {
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.04) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 4px 15px rgba(25, 135, 84, 0.12);
+  transition: all 0.3s ease;
+  border-left: 4px solid #198754;
+  position: relative;
+  overflow: hidden;
+}
+
+.core-value-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(25, 135, 84, 0.15) 0%, transparent 100%);
+  transition: width 0.5s ease;
+}
+
+.core-value-card:hover::before {
+  width: 100%;
+}
+
+.core-value-card:hover {
+  transform: translateX(8px);
+  box-shadow: 0 8px 25px rgba(25, 135, 84, 0.25);
+  border-left-width: 6px;
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.14) 0%, rgba(25, 135, 84, 0.06) 100%);
+}
+
+/* Cards del equipo */
+.team-card {
+  background: rgba(25, 135, 84, 0.75);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 2px solid rgba(25, 135, 84, 0.9);
+  height: 100%;
+}
+
+.team-card:hover {
+  transform: translateY(-15px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(25, 135, 84, 0.4);
+  border-color: #ffffff;
+  background: rgba(25, 135, 84, 0.85);
+}
+
+.team-card img {
+  transition: all 0.4s ease;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.team-card:hover img {
+  transform: scale(1.1) rotate(5deg);
+  border-color: #ffffff;
+}
+
+.team-card h5 {
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.team-card:hover h5 {
+  color: #ffffff;
+}
+
+.team-card small {
+  color: #ffffff !important;
+}
+
+.team-card p {
+  color: #ffffff !important;
+}
+
+/* Animación de entrada para las cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.about-card,
+.history-card,
+.mission-vision-card,
+.value-card,
+.core-value-card,
+.team-card {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Delays escalonados para efecto cascada */
+.about-card:nth-child(1) { animation-delay: 0.1s; }
+.about-card:nth-child(2) { animation-delay: 0.2s; }
+.about-card:nth-child(3) { animation-delay: 0.3s; }
+.about-card:nth-child(4) { animation-delay: 0.4s; }
+
+.value-card:nth-child(1) { animation-delay: 0.1s; }
+.value-card:nth-child(2) { animation-delay: 0.2s; }
+.value-card:nth-child(3) { animation-delay: 0.3s; }
+.value-card:nth-child(4) { animation-delay: 0.4s; }
+
+.core-value-card:nth-child(1) { animation-delay: 0.1s; }
+.core-value-card:nth-child(2) { animation-delay: 0.2s; }
+.core-value-card:nth-child(3) { animation-delay: 0.3s; }
+.core-value-card:nth-child(4) { animation-delay: 0.4s; }
+
+.team-card:nth-child(1) { animation-delay: 0.1s; }
+.team-card:nth-child(2) { animation-delay: 0.2s; }
+.team-card:nth-child(3) { animation-delay: 0.3s; }
+
+/* Efecto de brillo al hover */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s ease;
+}
+
+.shine-effect:hover::after {
+  left: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-card,
+  .value-card,
+  .core-value-card,
+  .team-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mission-vision-card {
+    padding: 2rem 1.5rem;
+  }
+}

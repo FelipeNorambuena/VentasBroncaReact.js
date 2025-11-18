@@ -6,8 +6,33 @@ import whatsappIcon from '../assets/icons/whatsapp.svg'
 
 export default function Footer() {
   return (
-    <footer className="footer bg-dark text-light py-4 mt-5">
-      <div className="container">
+    <>
+      <style>{`
+        .hover-link {
+          transition: all 0.3s ease;
+          display: inline-block;
+        }
+        .hover-link:hover {
+          color: #28a745 !important;
+          transform: translateX(5px);
+        }
+        .hover-link i {
+          transition: color 0.3s ease;
+        }
+        .hover-link:hover i {
+          color: #28a745;
+        }
+        .social-links a {
+          transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .social-links a:hover {
+          transform: scale(1.2);
+          opacity: 0.8;
+        }
+      `}</style>
+      
+      <footer className="footer bg-dark text-light py-4 mt-5">
+        <div className="container">
         <div className="row">
           <div className="col-lg-4 col-md-6 mb-4">
             <h5 className="fw-bold mb-3 d-flex align-items-center">
@@ -20,20 +45,64 @@ export default function Footer() {
           <div className="col-lg-2 col-md-6 mb-4">
             <h6 className="fw-bold mb-3">Enlaces</h6>
             <ul className="list-unstyled">
-              <li><Link to="/" className="text-light text-decoration-none">Inicio</Link></li>
-              <li><Link to="/productos" className="text-light text-decoration-none">Productos</Link></li>
-              <li><Link to="/categorias" className="text-light text-decoration-none">Categorías</Link></li>
-              <li><Link to="/contacto" className="text-light text-decoration-none">Contacto</Link></li>
+              <li className="mb-2">
+                <Link to="/" className="text-light text-decoration-none hover-link">
+                  <i className="fas fa-home me-2"></i>Inicio
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/productos" className="text-light text-decoration-none hover-link">
+                  <i className="fas fa-box me-2"></i>Productos
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/nosotros" className="text-light text-decoration-none hover-link">
+                  <i className="fas fa-users me-2"></i>Nosotros
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/contacto" className="text-light text-decoration-none hover-link">
+                  <i className="fas fa-envelope me-2"></i>Contacto
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div className="col-lg-3 col-md-6 mb-4">
             <h6 className="fw-bold mb-3">Categorías</h6>
             <ul className="list-unstyled">
-              <li><Link to="/categorias/militares" className="text-light text-decoration-none">Militares</Link></li>
-              <li><Link to="/categorias/camping" className="text-light text-decoration-none">Camping</Link></li>
-              <li><Link to="/categorias/tacticos" className="text-light text-decoration-none">Tácticos</Link></li>
-              <li><Link to="/categorias/accesorios" className="text-light text-decoration-none">Accesorios</Link></li>
+              <li className="mb-2">
+                <Link 
+                  to="/productos?categoria=Militares" 
+                  className="text-light text-decoration-none hover-link"
+                >
+                  <i className="fas fa-shield-alt me-2"></i>Militares
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  to="/productos?categoria=Camping" 
+                  className="text-light text-decoration-none hover-link"
+                >
+                  <i className="fas fa-campground me-2"></i>Camping
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  to="/productos?categoria=Tácticos" 
+                  className="text-light text-decoration-none hover-link"
+                >
+                  <i className="fas fa-user-secret me-2"></i>Tácticos
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  to="/productos?categoria=Mochilas" 
+                  className="text-light text-decoration-none hover-link"
+                >
+                  <i className="fas fa-backpack me-2"></i>Mochilas
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -47,21 +116,27 @@ export default function Footer() {
                 <img src={whatsappIcon} alt="WhatsApp" style={{ height: 32, width: 32 }} />
               </a>
             </div>
-            <p className="text-light mb-0">+56 9 7416 1396</p>
+            <p className="text-light mb-0"></p>
           </div>
         </div>
 
         <hr className="my-4 border-secondary" />
 
         <div className="row align-items-center">
-            <div className="col-md-6">
-            <p className="text-light mb-0">&copy; 2025 VentasBronca. Todos los derechos reservados.</p>
+          <div className="col-md-6 text-center text-md-start">
+            <p className="text-light mb-0">
+              <i className="fas fa-copyright me-1"></i>
+              2025 VentasBronca. Todos los derechos reservados.
+            </p>
           </div>
-          <div className="col-md-6 text-md-end">
-            <p className="text-light mb-0">Desarrollado con <i className="fas fa-heart text-danger"></i> para profesionales</p>
+          <div className="col-md-6 text-center text-md-end">
+            <p className="text-light mb-0">
+              Desarrollado por Felipe Norambuena y Juan Pablo González
+            </p>
           </div>
         </div>
       </div>
     </footer>
+    </>
   )
 }

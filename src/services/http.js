@@ -18,6 +18,15 @@ export async function request(path, { method = 'GET', body, auth = false, header
   if (!baseUrl) throw new Error('VITE_API_BASE_URL no está configurado')
   const url = path.startsWith('http') ? path : `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
 
+  // LOG: URL completa que se va a llamar
+  console.log(`🌐 HTTP ${method} ${url}`);
+  if (body instanceof FormData) {
+    console.log('📦 Body (FormData):');
+    for (let [key, value] of body.entries()) {
+      console.log(`  ${key}:`, value instanceof File ? `[File: ${value.name}, ${value.size} bytes]` : value);
+    }
+  }
+
   const isJSON = body && typeof body === 'object' && !(body instanceof FormData)
   const finalHeaders = { ...headers }
   if (isJSON) finalHeaders['Content-Type'] = 'application/json'
@@ -35,6 +44,8 @@ export async function request(path, { method = 'GET', body, auth = false, header
   const contentType = res.headers.get('content-type') || ''
   const data = contentType.includes('application/json') ? await res.json().catch(() => null) : await res.text()
 
+  console.log(`📥 HTTP ${method} ${url} - Status: ${res.status}`, data);
+
   if (!res.ok) {
     const message = data?.error?.message || data?.message || res.statusText || 'Error HTTP'
     const code = data?.error?.code || res.status
@@ -42,6 +53,7 @@ export async function request(path, { method = 'GET', body, auth = false, header
     const err = new Error(message)
     err.code = code
     err.details = details
+    console.error(`❌ HTTP Error ${code}:`, message, details);
     throw err
   }
 
@@ -54,3 +66,10 @@ export const http = {
   patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
 }
+
+// Exportar también las funciones individuales para importación directa
+export const get = http.get
+export const post = http.post
+export const patch = http.patch
+export const del = http.del
+

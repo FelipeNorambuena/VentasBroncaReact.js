@@ -10,8 +10,6 @@ import CartModal from './components/CartModal'
 import ProductsSection from './components/ProductsSection'
 import About from './components/About'
 import Contact from './components/Contact'
-import BlogList from './components/BlogList'
-import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
 import AdminInstructions from './components/AdminInstructions'
@@ -19,6 +17,12 @@ import Notification from './components/Notification'
 import ConfirmModal from './components/ConfirmModal'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Productos from './pages/Productos'
+import BlogList from './pages/BlogList'
+import BlogPost from './pages/BlogPost'
+import Profile from './pages/Profile'
+import Orders from './pages/Orders'
+import Checkout from './pages/Checkout'
+import CheckoutConfirmacion from './pages/CheckoutConfirmacion'
 import AdminLayout from './admin/AdminLayout'
 import AdminDashboard from './admin/AdminDashboard'
 import AdminUsuarios from './admin/AdminUsuarios'
@@ -26,6 +30,8 @@ import AdminProductos from './admin/AdminProductos'
 import AdminCrearUsuario from './admin/AdminCrearUsuario'
 import AdminConfiguracion from './admin/AdminConfiguracion'
 import AdminPerfil from './admin/AdminPerfil'
+import AdminPagosOrdenes from './admin/AdminPagosOrdenes'
+import AdminTodasOrdenes from './admin/AdminTodasOrdenes'
 
 function AppContent() {
   const { confirm } = React.useContext(CartContext)
@@ -63,19 +69,26 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/perfil" element={<Profile />} />
+        <Route path="/mis-pedidos" element={<Orders />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout/confirmacion" element={<CheckoutConfirmacion />} />
         <Route path="/admin-help" element={<AdminInstructions />} />
         <Route path="/nosotros" element={<About />} />
-        <Route path="/blogs" element={<BlogList />} />
-        <Route path="/blogs/:id" element={<BlogPost />} />
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/contacto" element={<Contact />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="todas-ordenes" element={<AdminTodasOrdenes />} />
           <Route index element={<AdminDashboard />} />
           <Route path="usuarios" element={<AdminUsuarios />} />
           <Route path="productos" element={<AdminProductos />} />
+          <Route path="pagos-ordenes" element={<AdminPagosOrdenes />} />
           <Route path="crear-usuario" element={<AdminCrearUsuario />} />
           <Route path="configuracion" element={<AdminConfiguracion />} />
           <Route path="perfil" element={<AdminPerfil />} />
+          <Route path="todas-ordenes" element={<AdminTodasOrdenes />} />
         </Route>
         <Route path="/" element={
           <>

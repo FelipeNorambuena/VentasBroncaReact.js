@@ -1,42 +1,64 @@
 import React, { useEffect, useState } from 'react'
-import { productImageService } from '../services/productImage'
 import { getImageUrl } from '../utils/imageHelper'
 
 export default function ProductPreviewModal({ show, onClose, product }) {
   const [images, setImages] = useState([])
-  const [loadingImages, setLoadingImages] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
-    if (show && product?.id) {
-      loadImages()
+    if (show && product) {
+      console.log('📸 ProductPreview - Producto completo:', product)
+      let foundImages = []
+      
+      // Opción 1: Imagen principal del producto (campo 'image')
+      if (product.image) {
+        console.log('📸 ProductPreview - Campo image encontrado:', product.image)
+        
+        // Crear objeto de imagen normalizado
+        const imageObj = {
+          id: 'main',
+          imagen: product.image,
+          alt_text: product.name,
+          es_principal: true
+        }
+        
+        foundImages.push(imageObj)
+        console.log('📸 ProductPreview - Imagen principal agregada:', imageObj)
+      }
+      
+      // Opción 2: Imágenes desde las relaciones de Xano
+      const relatedImages = product._imagen_producto_of_product 
+        || product.imagen_producto_of_product 
+        || product.imagenes 
+        || []
+      
+      if (relatedImages.length > 0) {
+        foundImages.push(...relatedImages)
+        console.log(`📸 ProductPreview - ${relatedImages.length} imágenes relacionadas agregadas:`, relatedImages)
+      }
+      
+      if (foundImages.length > 0) {
+        // Normalizar todas las imágenes con getImageUrl
+        const normalizedImages = foundImages.map(img => {
+          const url = getImageUrl(img)
+          console.log('📸 ProductPreview - URL normalizada:', url, 'desde:', img)
+          return {
+            ...img,
+            normalizedUrl: url
+          }
+        })
+        
+        setImages(normalizedImages)
+        setSelectedImage(normalizedImages[0])
+        
+        console.log(`📸 ProductPreview - Total de ${normalizedImages.length} imágenes normalizadas:`, normalizedImages)
+      } else {
+        setImages([])
+        setSelectedImage(null)
+        console.log('⚠️ ProductPreview - Producto sin imágenes')
+      }
     }
   }, [show, product])
-
-  const loadImages = async () => {
-    if (!product?.id) return
-    setLoadingImages(true)
-    try {
-      const res = await productImageService.list({ product_id: product.id })
-      const imageList = Array.isArray(res) ? res : (res?.data || [])
-      
-      // Normalizar URLs de todas las imágenes
-      const normalizedImages = imageList.map(img => ({
-        ...img,
-        normalizedUrl: getImageUrl(img) || img.url
-      }))
-      
-      setImages(normalizedImages)
-      if (normalizedImages.length > 0) {
-        setSelectedImage(normalizedImages[0])
-      }
-    } catch (err) {
-      console.error('Error cargando imágenes:', err)
-      setImages([])
-    } finally {
-      setLoadingImages(false)
-    }
-  }
 
   if (!show || !product) return null
 
@@ -58,21 +80,20 @@ export default function ProductPreviewModal({ show, onClose, product }) {
               <div className="col-md-6">
                 <div className="mb-3">
                   <h6 className="text-muted mb-2">Imágenes del Producto</h6>
-                  {loadingImages ? (
-                    <div className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Cargando...</span>
-                      </div>
-                    </div>
-                  ) : images.length > 0 ? (
+                  {images.length > 0 ? (
                     <>
                       {/* Imagen principal */}
                       <div className="mb-3 border rounded p-2 bg-light" style={{ minHeight: 300 }}>
                         <img 
                           src={selectedImage?.normalizedUrl || selectedImage?.url} 
-                          alt={selectedImage?.alt || product.name}
+                          alt={selectedImage?.alt_text || product.name}
                           className="img-fluid rounded"
                           style={{ width: '100%', height: 300, objectFit: 'contain' }}
+                          onError={(e) => {
+                            console.error('Error cargando imagen:', selectedImage)
+                            e.target.onerror = null // Prevenir loop infinito
+                            e.target.style.display = 'none' // Ocultar imagen rota
+                          }}
                         />
                       </div>
                       
@@ -88,9 +109,13 @@ export default function ProductPreviewModal({ show, onClose, product }) {
                             >
                               <img 
                                 src={img.normalizedUrl || img.url} 
-                                alt={img.alt}
+                                alt={img.alt_text}
                                 className="rounded"
                                 style={{ width: 80, height: 80, objectFit: 'cover' }}
+                                onError={(e) => {
+                                  e.target.onerror = null // Prevenir loop infinito
+                                  e.target.style.display = 'none' // Ocultar imagen rota
+                                }}
                               />
                             </div>
                           ))}

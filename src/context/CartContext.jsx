@@ -43,6 +43,11 @@ export function CartProvider({ children }) {
     setTimeout(() => setNotification(null), 3000)
   }, [])
 
+  // Función para limpiar notificaciones manualmente
+  const clearNotification = useCallback(() => {
+    setNotification(null)
+  }, [])
+
   const addItem = useCallback((product) => {
     if (!product.id || !product.name || !product.price) {
         showNotification('Error: Datos del producto incompletos', 'error');
@@ -100,8 +105,15 @@ export function CartProvider({ children }) {
     })
   }, [items, showNotification])
   
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback((skipConfirmation = false) => {
     if (items.length === 0) return
+    
+    if (skipConfirmation) {
+      // Limpiar sin confirmación (para checkout exitoso)
+      setItems([])
+      return
+    }
+    
     // Mostrar el modal de confirmación
     setConfirm({
         title: 'Vaciar Carrito',
@@ -151,8 +163,10 @@ export function CartProvider({ children }) {
         checkout,
         totalItems, 
         totalPrice,
+        total: totalPrice, // Alias para compatibilidad
         notification,
         showNotification,
+        clearNotification,
         confirm, // Pasar el estado del modal
         formatCurrency
     }}>
